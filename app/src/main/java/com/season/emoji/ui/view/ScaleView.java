@@ -19,6 +19,8 @@ import android.widget.RelativeLayout;
 
 import com.season.emoji.util.LogUtil;
 
+import java.util.Random;
+
 /**
  * Disc:
  * User: SeasonAllan(451360508@qq.com)
@@ -47,7 +49,7 @@ public class ScaleView extends RelativeLayout {
 
     private float mCurrentScale = 1f;
     private float MIN_SCALE = Integer.MIN_VALUE;
-    private Matrix mCurrentMatrix;
+    public Matrix mCurrentMatrix;
     private float mMidX;
     private float mMidY;
     private OnClickListener mClickListener;
@@ -85,10 +87,26 @@ public class ScaleView extends RelativeLayout {
         return rotation;
     }
 
+
+    boolean isRandomed = false;
+    public void randomPosition(int x, int y){
+        if (isRandomed){
+            return;
+        }
+        isRandomed = true;
+        mCurrentMatrix.postTranslate(x, y);
+        ((ContainerView)getParent()).addEvent(ContainerView.IType.ADD, this, mCurrentMatrix);
+        invalidate();
+    }
+
+    public void resetMatrix(float[] matrix){
+        mCurrentMatrix.setValues(matrix);
+        invalidate();
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         if (ev.getAction() == MotionEvent.ACTION_DOWN){
-            LogUtil.d("ACTION_DOWN "+ev.getPointerCount());
             if (ev.getPointerCount() == 1){
                 if (getChildCount() > 0){
                     View child = getChildAt(0);
@@ -98,20 +116,10 @@ public class ScaleView extends RelativeLayout {
                 }
             }
         }
-        if (ev.getAction() == MotionEvent.ACTION_UP) {
-            LogUtil.d("ACTION_UP ACTION_UP  "+ev.getPointerCount());
-            if (ev.getPointerCount() == 0) {
-                isFocus = false;
-            }
-        }
-        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
-            LogUtil.d(" onTouchEvent ddd " + isFocus);
-        }
-        if (ev.getAction() == MotionEvent.ACTION_MOVE) {
-            LogUtil.d(" onTouchEvent mmmmmmmmmmmmmmmm " + isFocus);
-        }
-        if (ev.getAction() == MotionEvent.ACTION_UP) {
-            LogUtil.d(" onTouchEvent ... " + isFocus);
+        if (ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_CANCEL) {
+            isFocus = false;
+            ((ContainerView)getParent()).addEvent(ContainerView.IType.OP, this, mCurrentMatrix);
+            invalidate();
         }
         mScaleDetector.onTouchEvent(ev);
         if (!mScaleDetector.isInProgress()) {
@@ -208,7 +216,7 @@ public class ScaleView extends RelativeLayout {
 
                 float degree = newDegree - preDegree;
                 mCurrentMatrix.postRotate( degree, (detector.preX2 + detector.preX1)/2, (detector.preY2 + detector.preY1)/2);
-                LogUtil.d(preDegree + ",,,,," + newDegree + "      =    " + degree);
+              //  LogUtil.d(preDegree + ",,,,," + newDegree + "      =    " + degree);
 
                 float scaleFactor = detector.getScaleFactor();
 

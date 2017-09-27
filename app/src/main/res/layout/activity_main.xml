@@ -6,13 +6,13 @@
     android:layout_height="match_parent"
     tools:context=".ui.MainActivity">
 
-    <RelativeLayout
+    <com.season.emoji.ui.view.ContainerView
         android:id="@+id/container"
         android:layout_width="match_parent"
-        android:layout_above="@+id/text"
+        android:layout_above="@+id/operate"
         android:layout_height="match_parent">
 
-    </RelativeLayout>
+    </com.season.emoji.ui.view.ContainerView>
 
     <Button
         android:id="@+id/camera"
@@ -22,21 +22,53 @@
         android:text="拍照"
         android:onClick="拍照"
         android:layout_centerHorizontal="true"/>
-    <Button
-        android:id="@+id/gif"
+
+    <LinearLayout
+        android:id="@+id/addview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/camera"
-        android:text="添加GIF"
-        android:onClick="添加GIF"
-        android:layout_centerHorizontal="true"/>
-    <Button
-        android:id="@+id/text"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/gif"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="添加GIF"
+            android:onClick="添加GIF"
+            android:layout_centerHorizontal="true"/>
+        <Button
+            android:id="@+id/text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="添加文字"
+            android:onClick="添加文字"
+            android:layout_centerHorizontal="true"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/operate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/gif"
-        android:text="添加文字"
-        android:onClick="添加文字"
-        android:layout_centerHorizontal="true"/>
+        android:layout_above="@+id/addview"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/pre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="撤销操作"
+            android:onClick="撤销操作" />
+        <Button
+            android:id="@+id/pro"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="重复操作"
+            android:onClick="重复操作" />
+    </LinearLayout>
 
 </RelativeLayout>
