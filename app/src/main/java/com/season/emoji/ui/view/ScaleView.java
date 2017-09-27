@@ -2,9 +2,16 @@ package com.season.emoji.ui.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Region;
+import android.graphics.Typeface;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -34,27 +41,6 @@ public class ScaleView extends RelativeLayout {
         super(context, attrs, defStyleAttr);
         init();
     }
-
-    @Override
-    public void draw(Canvas canvas) {
-        super.draw(canvas);
-
-    }
-
-    @Override
-    protected void dispatchDraw(Canvas canvas) {
-        int saveCount = canvas.save();
-        canvas.concat(mCurrentMatrix);
-
-        super.dispatchDraw(canvas);
-        canvas.restoreToCount(saveCount);
-    }
-
-    @Override
-    protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
-        return super.drawChild(canvas, child, drawingTime);
-    }
-
 
     private ScaleDetector mScaleDetector;
     private GestureDetector mGestureDetector;
@@ -99,8 +85,115 @@ public class ScaleView extends RelativeLayout {
         return rotation;
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_DOWN){
+            LogUtil.d("ACTION_DOWN "+ev.getPointerCount());
+            if (ev.getPointerCount() == 1){
+                if (getChildCount() > 0){
+                    View child = getChildAt(0);
+                    Rect rect = new Rect(child.getLeft(), child.getTop(), child.getRight(), child.getBottom());
+                    //canvas.drawRect(rect, paint);
+                    isFocus =  isTouchPointInView(child, (int)ev.getX(), (int) ev.getY());
+                }
+            }
+        }
+        if (ev.getAction() == MotionEvent.ACTION_UP) {
+            LogUtil.d("ACTION_UP ACTION_UP  "+ev.getPointerCount());
+            if (ev.getPointerCount() == 0) {
+                isFocus = false;
+            }
+        }
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            LogUtil.d(" onTouchEvent ddd " + isFocus);
+        }
+        if (ev.getAction() == MotionEvent.ACTION_MOVE) {
+            LogUtil.d(" onTouchEvent mmmmmmmmmmmmmmmm " + isFocus);
+        }
+        if (ev.getAction() == MotionEvent.ACTION_UP) {
+            LogUtil.d(" onTouchEvent ... " + isFocus);
+        }
+        mScaleDetector.onTouchEvent(ev);
+        if (!mScaleDetector.isInProgress()) {
+            mGestureDetector.onTouchEvent(ev);
+        }
+        return isFocus;
+    }
+
+    boolean isFocus = false;
+
+
+    //(x,y)是否在view的区域内
+    private boolean isTouchPointInView(View view, int x, int y) {
+        if (view == null) {
+            return false;
+        }
+        float[] leftTop = {view.getLeft(), view.getTop()};
+        mCurrentMatrix.mapPoints(leftTop);
+
+        float[] rightTop = {view.getRight(), view.getTop()};
+        mCurrentMatrix.mapPoints(rightTop);
+
+        float[] leftBottom = {view.getLeft(), view.getBottom()};
+        mCurrentMatrix.mapPoints(leftBottom);
+
+        float[] rightBottom = {view.getRight(), view.getBottom()};
+        mCurrentMatrix.mapPoints(rightBottom);
+
+
+        Path path = new Path();
+        path.moveTo(leftTop[0], leftTop[1]);
+        // 连接路径到点
+        path.lineTo(rightTop[0], rightTop[1]);
+        path.lineTo(rightBottom[0], rightBottom[1]);
+        path.lineTo(leftBottom[0], leftBottom[1]);
+        // 闭合曲线
+        path.close();
+
+        RectF bounds = new RectF();
+        path.computeBounds(bounds, true);
+        Region region = new Region();
+        region.setPath(path, new Region((int) bounds.left, (int) bounds.top, (int) bounds.right, (int) bounds.bottom));
+
+        LogUtil.d("x=" + x + "         y=" + y);
+        LogUtil.d("leftTop="+leftTop[0] +","+leftTop[1]+"         rightTop="+rightTop[0] +","+rightTop[1]+"         leftBottom="+leftBottom[0] +","+leftBottom[1]+"         rightBottom="+rightBottom[0] +","+rightBottom[1]);
+
+        if (region.contains(x, y)) {
+            LogUtil.d("in");
+            return true;
+        }
+        LogUtil.d("out of view");
+        return false;
+    }
+
+    private Paint paint  = new Paint() ;
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        int saveCount = canvas.save();
+        canvas.concat(mCurrentMatrix);
+
+        super.dispatchDraw(canvas);
+
+        if (getChildCount() > 0 && isFocus){
+            View child = getChildAt(0);
+            Rect rect = new Rect(child.getLeft(), child.getTop(), child.getRight(), child.getBottom());
+            canvas.drawRect(rect, paint);
+        }
+
+        canvas.restoreToCount(saveCount);
+    }
 
     private void init() {
+        //加粗
+        paint.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+        paint.setStyle(Paint.Style.STROKE);
+        // 消除锯齿
+        paint.setAntiAlias(true);
+        // 设置画笔的颜色
+        paint.setColor(Color.RED);
+        // 设置paint的外框宽度
+        paint.setStrokeWidth(2);
+
         mCurrentMatrix = new Matrix();
         ScaleDetector.OnScaleGestureListener scaleListener = new ScaleDetector
                 .SimpleOnScaleGestureListener() {
@@ -208,21 +301,6 @@ public class ScaleView extends RelativeLayout {
         RectF rectF = new RectF(getLeft(), getTop(), getRight(), getBottom());
         matrix.mapRect(rectF);
         return rectF;
-    }
-
-
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-        return true;
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        mScaleDetector.onTouchEvent(event);
-        if (!mScaleDetector.isInProgress()) {
-            mGestureDetector.onTouchEvent(event);
-        }
-        return true;
     }
 
     /**

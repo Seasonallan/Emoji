@@ -34,20 +34,23 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onDenied(String permission) {
-//                Toast.makeText(MainActivity.this, "Permission " + permission + " has been denied", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Permission " + permission + " has been denied", Toast.LENGTH_SHORT).show();
             }
         });
 
+        addImage(R.raw.clound);
+
+    }
+
+    private void addImage(int id){
         ScaleView scaleView = new ScaleView(this);
         GifView gifView = new GifView(this);
-        gifView.setMovieResource(R.raw.timg);
-        scaleView.addView(gifView, new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        gifView.setMovieResource(id);
+        scaleView.addView(gifView, new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);//270, 270);
         params.addRule(RelativeLayout.CENTER_IN_PARENT);
         mContainerView.addView(scaleView, params);
-
-
     }
 
     public void 拍照(View view) {
@@ -55,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void 添加GIF(View view) {
+        addImage(R.raw.timg);
     }
 
     public void 添加文字(View view) {
