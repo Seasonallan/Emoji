@@ -89,12 +89,26 @@ public class ScaleView extends RelativeLayout {
 
 
     boolean isRandomed = false;
-    public void randomPosition(int x, int y){
+    public void randomPosition(int width, int height){
         if (isRandomed){
             return;
         }
         isRandomed = true;
-        mCurrentMatrix.postTranslate(x, y);
+        if (width > 0){
+            width = width/2;
+            height = height/2;
+            if (getChildCount() > 0){
+                View child = getChildAt(0);
+                if (child instanceof IScaleView){
+                    width = width - ((IScaleView) child).getShowWidth()/2;
+                    height = height - ((IScaleView) child).getShowHeight()/2;
+                }else{
+                    width = width - child.getMeasuredWidth()/2;
+                    height = height - child.getMeasuredHeight()/2;
+                }
+            }
+            mCurrentMatrix.postTranslate(width, height);
+        }
         ((ContainerView)getParent()).addEvent(ContainerView.IType.ADD, this, mCurrentMatrix);
         invalidate();
     }
@@ -215,7 +229,7 @@ public class ScaleView extends RelativeLayout {
                 float newDegree = getRotationBetweenLines(detector.currentX2, detector.currentY2, detector.currentX1, detector.currentY1);
 
                 float degree = newDegree - preDegree;
-                mCurrentMatrix.postRotate( degree, (detector.preX2 + detector.preX1)/2, (detector.preY2 + detector.preY1)/2);
+                mCurrentMatrix.postRotate(degree, (detector.preX2 + detector.preX1) / 2, (detector.preY2 + detector.preY1) / 2);
               //  LogUtil.d(preDegree + ",,,,," + newDegree + "      =    " + degree);
 
                 float scaleFactor = detector.getScaleFactor();

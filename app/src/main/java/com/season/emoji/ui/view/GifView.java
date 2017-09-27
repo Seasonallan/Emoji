@@ -15,7 +15,7 @@ import java.io.InputStream;
  * User: SeasonAllan(451360508@qq.com)
  * Time: 2017-09-26 18:37
  */
-public class GifView extends View {
+public class GifView extends View implements IScaleView{
     /** gift动态效果总时长，在未设置时长时默认为1秒 */
     private static final int DEFAULT_MOVIE_DURATION = 1000;
     /** gift图片资源ID */
@@ -245,4 +245,13 @@ public class GifView extends View {
     }
 
 
+    @Override
+    public int getShowWidth() {
+        return mMovie.width();
+    }
+
+    @Override
+    public int getShowHeight() {
+        return mMovie.height();
+    }
 }

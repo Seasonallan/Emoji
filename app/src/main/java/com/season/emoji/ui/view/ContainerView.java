@@ -57,7 +57,7 @@ public class ContainerView extends RelativeLayout {
             if (getWidth() <= 0){
                 ((ScaleView)child).randomPosition(0, 1);
             }else{
-                ((ScaleView)child).randomPosition(new Random().nextInt(getWidth()), new Random().nextInt(getHeight()));
+                ((ScaleView)child).randomPosition(getWidth(), getHeight());
             }
         }
     }
@@ -90,23 +90,32 @@ public class ContainerView extends RelativeLayout {
         return position < list.size()-1;
     }
 
+    private int getPreScaleViewPosition(int position){
+        ScaleView scaleView = list.get(position).scaleView;
+        for (int i = position - 1; i >= 0; i --){
+            if (list.get(i).scaleView == scaleView){
+                return i;
+            }
+        }
+        return position;
+    }
+
     public void pre(){
         switch (list.get(position).type){
             case IType.OP:
-                position --;
-                ScaleView scaleView = list.get(position).scaleView;
-                float[] data  = list.get(position).matrix;
+                int pos = getPreScaleViewPosition(position);
+                ScaleView scaleView = list.get(pos).scaleView;
+                float[] data  = list.get(pos).matrix;
                 scaleView.resetMatrix(data);
                 break;
             case IType.ADD:
                 removeView(list.get(position).scaleView);
-                position --;
                 break;
             case IType.REMOVE:
                 addView(list.get(position).scaleView);
-                position --;
                 break;
         }
+        position --;
     }
 
     public void pro(){
