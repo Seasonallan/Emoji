@@ -10,4 +10,6 @@ public interface IScaleView {
     int getShowHeight(int height);
     int getDuration();
     void startRecord();
+
+    boolean recordOrNot();
 }

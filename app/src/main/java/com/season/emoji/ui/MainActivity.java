@@ -7,9 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.march.gifmaker.GifMaker;
@@ -17,7 +15,7 @@ import com.season.emoji.ui.view.TextViewEx;
 import com.season.emoji.ui.view.gif.frame.GifFrameView;
 import com.season.emoji.R;
 import com.season.emoji.ui.view.ContainerView;
-import com.season.emoji.ui.view.gif.GifMovieView;
+import com.season.emoji.ui.view.gif.movie.GifMovieView;
 import com.season.emoji.permission.PermissionsManager;
 import com.season.emoji.permission.PermissionsResultAction;
 import com.season.emoji.ui.view.scale.ScaleView;
@@ -25,7 +23,6 @@ import com.season.emoji.util.LogUtil;
 
 import java.io.File;
 import java.util.Timer;
-import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -105,14 +102,17 @@ public class MainActivity extends AppCompatActivity {
             if (requestCode == 1024) {
                 String path = data.getStringExtra("outPath");
                 ScaleView scaleView = new ScaleView(this);
-
+                scaleView.setBackground();
                 GifFrameView gifView = new GifFrameView(this);
                 gifView.setMovieResource(path);
               //  GifMovieView gifView = new GifMovieView(this, true);
               //  gifView.setMovieResource(path);
                 scaleView.addView(gifView, new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-                mContainerView.addView(scaleView);
+                if (mContainerView.hasCameraView(mContainerView)){
+                    mContainerView.reset();
+                }
+                mContainerView.addView(scaleView, 0);
 
             }
         }
@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void 添加文字(View view) {
-        addText("添加文字");
+        addText("表情科技Demo");
     }
 
     public void 撤销操作(View view) {
@@ -150,7 +150,11 @@ public class MainActivity extends AppCompatActivity {
     private long recLen = 300;
     private Timer timer = new Timer();
     public void 合成(View view) {
-        LogUtil.toast("合成");
+        if (mContainerView.getChildCount() == 0){
+            LogUtil.toast("画布上没东西");
+            return;
+        }
+        LogUtil.toast("正在合成，请稍后");
         recLen = System.currentTimeMillis();
         mContainerView.start(new GifMaker.OnGifMakerListener() {
             @Override

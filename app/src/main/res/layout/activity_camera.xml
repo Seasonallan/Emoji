@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
     tools:context=".ui.CameraActivity">
 
     <com.season.emoji.ui.view.camera.CameraSurfaceView
@@ -16,7 +17,6 @@
         android:id="@+id/bottom"
         android:layout_width="match_parent"
         android:layout_alignParentBottom="true"
-        android:background="@android:color/black"
         android:layout_height="200dp">
 
         <com.season.emoji.ui.view.camera.CameraProgressBar

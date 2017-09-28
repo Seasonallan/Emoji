@@ -47,4 +47,9 @@ public class TextViewEx extends TextView implements IScaleView{
     @Override
     public void startRecord() {
     }
+
+    @Override
+    public boolean recordOrNot() {
+        return false;
+    }
 }

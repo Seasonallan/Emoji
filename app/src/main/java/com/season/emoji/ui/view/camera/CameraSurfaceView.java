@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 import com.march.gifmaker.GifMaker;
+import com.season.emoji.R;
 import com.season.emoji.ui.view.TimeCount;
 import com.season.emoji.util.LogUtil;
 
@@ -58,7 +59,7 @@ public class CameraSurfaceView extends RelativeLayout implements TextureView.Sur
                 ViewGroup.LayoutParams.MATCH_PARENT);
         params.addRule(CENTER_IN_PARENT);
         addView(textureView, params);
-        setBackgroundColor(Color.BLACK);
+        setBackgroundColor(getResources().getColor(R.color.colorPrimary));
         init();
     }
 

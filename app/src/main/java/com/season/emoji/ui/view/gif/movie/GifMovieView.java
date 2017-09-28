@@ -1,4 +1,4 @@
-package com.season.emoji.ui.view.gif;
+package com.season.emoji.ui.view.gif.movie;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -60,11 +60,13 @@ public class GifMovieView extends View implements IScaleView {
     }
 
 
+    int resourceId;
     /**
      * 设置gif图资源
      * @param giftResId
      */
     public void setMovieResource(int giftResId) {
+        resourceId = giftResId;
         byte[] bytes = getGiftBytes(getResources().openRawResource(giftResId));
         mMovie = Movie.decodeByteArray(bytes, 0, bytes.length);
         LogUtil.log("duration= " + mMovie.duration());
@@ -214,6 +216,19 @@ public class GifMovieView extends View implements IScaleView {
      */
     private void drawMovieFrame(Canvas canvas) {
       //  LogUtil.d(mCurrentAnimationTime);
+
+        int index = 0;
+        if (delay != 0){
+            index = mCurrentAnimationTime/delay;
+        }
+        if (index == recordIndex){
+            recordCurrentData = false;
+        }else{
+            recordIndex = index;
+            recordCurrentData = true;
+        }
+
+
         // 设置要显示的帧，绘制即可
         mMovie.setTime(mCurrentAnimationTime);
         canvas.save(Canvas.MATRIX_SAVE_FLAG);
@@ -295,6 +310,17 @@ public class GifMovieView extends View implements IScaleView {
 
     @Override
     public void startRecord() {
+        recordCurrentData = true;
         mMovieStart = android.os.SystemClock.uptimeMillis();
+        delay = DelayDecoder.getDelay(getResources(), resourceId);
+    }
+
+    int delay = 100;
+    int recordIndex = -1 ;
+    boolean recordCurrentData = false;
+
+    @Override
+    public boolean recordOrNot() {
+        return recordCurrentData;
     }
 }

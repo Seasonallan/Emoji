@@ -42,6 +42,11 @@ public class ScaleView extends RelativeLayout {
         init();
     }
 
+    public int index = -1;
+    public void setBackground(){
+        index = 0;
+    }
+
     private ScaleDetector mScaleDetector;
     private GestureDetector mGestureDetector;
 
@@ -197,6 +202,10 @@ public class ScaleView extends RelativeLayout {
 
         if (getChildCount() > 0 && isFocus){
             View child = getChildAt(0);
+//            if (child instanceof IScaleView){
+//                Rect rect = new Rect(child.getLeft(), child.getTop(), child.getLeft() + ((IScaleView) child).getShowWidth(getRight() - getLeft()), ((IScaleView) child).getShowHeight(getBottom() - getTop()));
+//                canvas.drawRect(rect, paint);
+//            }
             Rect rect = new Rect(child.getLeft(), child.getTop(), child.getRight(), child.getBottom());
             canvas.drawRect(rect, paint);
         }

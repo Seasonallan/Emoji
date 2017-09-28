@@ -24,7 +24,8 @@ public class GifFrameView extends View implements IScaleView {
 
 	/** gif解码器 */
 	private GifDecoder gifDecoder = null;
-
+	private boolean fullScreen = true;
+	private Paint mPaint;
 	public GifFrameView(Context context) {
 		super(context);
 		init();
@@ -41,11 +42,12 @@ public class GifFrameView extends View implements IScaleView {
 	}
 
 	private void init() {
+		mPaint = new Paint();
 		gifDecoder = new GifDecoder();
 	}
 
-	private void setMovieResource(Resources rs, int resId) {
-		gifDecoder.setGifImage(rs, resId);
+	public void setMovieResource(int resId) {
+		gifDecoder.setGifImage(getContext().getResources(), resId);
 		gifDecoder.start();
 	}
 
@@ -90,10 +92,21 @@ public class GifFrameView extends View implements IScaleView {
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
 		updateAnimationTime();
+		int index = gifDecoder.getFrameIndex(mCurrentAnimationTime);
+		if (index == recordIndex){
+			recordCurrentData = false;
+		}else{
+			recordIndex = index;
+			recordCurrentData = true;
+		}
 		GifFrame gifFrame = gifDecoder.getFrame(mCurrentAnimationTime);
 		if (gifFrame != null){
-			if (gifFrame.image == null || (gifFrame.image != null && gifFrame.image.isRecycled() == false)) {
-				canvas.drawBitmap(gifFrame.image, new Rect(0, 0, gifFrame.image.getWidth(), gifFrame.image.getHeight()), new Rect(0, 0, getWidth(), getHeight()), new Paint());
+			if (gifFrame.image != null && gifFrame.image.isRecycled() == false) {
+				if (fullScreen){
+					canvas.drawBitmap(gifFrame.image, new Rect(0, 0, gifFrame.image.getWidth(), gifFrame.image.getHeight()), new Rect(0, 0, getWidth(), getHeight()), mPaint);
+				}else{
+					canvas.drawBitmap(gifFrame.image, 0, 0, mPaint);
+				}
 			}
 		}
 	}
@@ -133,6 +146,15 @@ public class GifFrameView extends View implements IScaleView {
 
 	@Override
 	public void startRecord() {
+		recordCurrentData = true;
 		mMovieStart = android.os.SystemClock.uptimeMillis();
+	}
+
+	int recordIndex = -1 ;
+	boolean recordCurrentData = false;
+
+	@Override
+	public boolean recordOrNot() {
+		return recordCurrentData;
 	}
 }

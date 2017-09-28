@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 import com.march.gifmaker.GifMaker;
+import com.season.emoji.ui.view.gif.frame.GifFrameView;
 import com.season.emoji.ui.view.scale.IScaleView;
 import com.season.emoji.ui.view.scale.ScaleView;
 import com.season.emoji.util.LogUtil;
@@ -31,20 +32,23 @@ import java.util.concurrent.Executors;
  */
 public class ContainerView extends RelativeLayout {
 
-    private TimeCount mTimeCount;
     private boolean isStart = false;
-    public void start(GifMaker.OnGifMakerListener listener) {
-        maxDuration = 0;
+    public boolean start(GifMaker.OnGifMakerListener listener) {
+        relyView = null;
         calMaxDuration(this);
+        if (relyView == null){
+            return false;
+        }
         String absolutePath = new File(Environment.getExternalStorageDirectory() + "/3/"
                 , System.currentTimeMillis() + ".gif").getAbsolutePath();
-        mGifMaker = new GifMaker(maxDuration, 120,  Executors.newCachedThreadPool())
+        mGifMaker = new GifMaker(relyView.getDuration(), 120,  Executors.newCachedThreadPool())
                 .setOutputPath(absolutePath);
         mGifMaker.setGifMakerListener(listener);
         isStart = true;
+        return true;
     }
 
-    private int maxDuration = 0;
+    private IScaleView relyView;
     private void calMaxDuration(ViewGroup parent){
         for (int i = 0; i< parent.getChildCount(); i++){
             View view = parent.getChildAt(i);
@@ -53,10 +57,13 @@ public class ContainerView extends RelativeLayout {
             }else{
                 if (view instanceof IScaleView){
                     ((IScaleView) view).startRecord();
+                    if (relyView == null){
+                        relyView = (IScaleView) view;
+                    }
                     int duration = ((IScaleView) view).getDuration();
-                    LogUtil.log("duration = "+ duration);
-                    maxDuration = Math.max(maxDuration , duration);
-                    LogUtil.log("MsxDuration = "+ maxDuration);
+                    if (relyView.getDuration() < duration){
+                        relyView = (IScaleView) view;
+                    }
                 }
             }
         }
@@ -116,22 +123,21 @@ public class ContainerView extends RelativeLayout {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            mTimeCount.reset();
             if (running){
                 refreshView(ContainerView.this);
             }
             if (isStart){
-                mTimeCount.addCost(1);
-                setDrawingCacheEnabled(true);
-                Bitmap tBitmap = getDrawingCache();
-                tBitmap = getBitmap(tBitmap, 270, 270);
-                setDrawingCacheEnabled(false);
-                mGifMaker.addBitmap(tBitmap);
+                if (relyView.recordOrNot()){
+                    setDrawingCacheEnabled(true);
+                    Bitmap tBitmap = getDrawingCache();
+                    tBitmap = getBitmap(tBitmap, 270, 270);
+                    setDrawingCacheEnabled(false);
+                    mGifMaker.addBitmap(tBitmap);
+                }
             }else{
-                mTimeCount.addCost(2);
             }
            // mHandler.sendEmptyMessageDelayed(0, 120 - mTimeCount.getTimeCost());
-            mHandler.sendEmptyMessageDelayed(0, 120);
+            mHandler.sendEmptyMessageDelayed(0, 50);
         }
     };
 
@@ -148,7 +154,6 @@ public class ContainerView extends RelativeLayout {
 
     GifMaker mGifMaker;
     private void init(){
-        mTimeCount = new TimeCount();
         mHandler.sendEmptyMessageDelayed(0, 10);
     }
 
@@ -170,6 +175,31 @@ public class ContainerView extends RelativeLayout {
         if (view instanceof ScaleView){
            // addEvent(IType.REMOVE, (ScaleView) view, ((ScaleView) view).mCurrentMatrix);
         }
+    }
+
+
+
+    public boolean hasCameraView(ViewGroup parent){
+        for (int i = 0; i< parent.getChildCount(); i++){
+            View view = parent.getChildAt(i);
+            if (view instanceof ViewGroup){
+                boolean has = hasCameraView((ViewGroup) view);
+                if (has){
+                    return true;
+                }
+            }else{
+                if (view instanceof GifFrameView){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public void reset(){
+        removeAllViews();
+        position = -1;
+        list.clear();
     }
 
     int position = -1;
@@ -214,7 +244,12 @@ public class ContainerView extends RelativeLayout {
                 removeView(list.get(position).scaleView);
                 break;
             case IType.REMOVE:
-                addView(list.get(position).scaleView);
+                int index = list.get(position).scaleView.index;
+                if (index == 0){
+                    addView(list.get(position).scaleView, 0);
+                }else{
+                    addView(list.get(position).scaleView);
+                }
                 break;
         }
         position --;
@@ -229,7 +264,12 @@ public class ContainerView extends RelativeLayout {
                 scaleView.resetMatrix(data);
                 break;
             case IType.ADD:
-                addView(list.get(position).scaleView);
+                int index = list.get(position).scaleView.index;
+                if (index == 0){
+                    addView(list.get(position).scaleView, 0);
+                }else{
+                    addView(list.get(position).scaleView);
+                }
                 break;
             case IType.REMOVE:
                 removeView(list.get(position).scaleView);
