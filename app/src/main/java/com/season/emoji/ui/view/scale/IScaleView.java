@@ -1,4 +1,4 @@
-package com.season.emoji.ui.view;
+package com.season.emoji.ui.view.scale;
 
 /**
  * Disc:
@@ -6,6 +6,6 @@ package com.season.emoji.ui.view;
  * Time: 2017-09-27 19:32
  */
 public interface IScaleView {
-    int getShowWidth();
-    int getShowHeight();
+    int getShowWidth(int width);
+    int getShowHeight(int height);
 }

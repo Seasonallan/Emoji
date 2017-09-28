@@ -1,4 +1,4 @@
-package com.season.emoji.ui.view;
+package com.season.emoji.ui.view.gif;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -6,7 +6,11 @@ import android.graphics.Movie;
 import android.os.Build;
 import android.view.View;
 
+import com.season.emoji.ui.view.scale.IScaleView;
+import com.season.emoji.util.LogUtil;
+
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -15,11 +19,9 @@ import java.io.InputStream;
  * User: SeasonAllan(451360508@qq.com)
  * Time: 2017-09-26 18:37
  */
-public class GifView extends View implements IScaleView{
+public class GifMovieView extends View implements IScaleView {
     /** gift动态效果总时长，在未设置时长时默认为1秒 */
     private static final int DEFAULT_MOVIE_DURATION = 1000;
-    /** gift图片资源ID */
-    private int mGiftId;
     /** Movie实例，用来显示gift图片 */
     private Movie mMovie;
     /** 显示gift图片的动态效果的开始时间 */
@@ -31,7 +33,7 @@ public class GifView extends View implements IScaleView{
     /** 图片离屏幕上边的距离 */
     private float mTop;
     /** 图片的缩放比例 */
-    private float mScale;
+    private float mScale = 1;
     /** 图片在屏幕上显示的宽度 */
     private int mMeasuredMovieWidth;
     /** 图片在屏幕上显示的高度 */
@@ -41,8 +43,17 @@ public class GifView extends View implements IScaleView{
     /** 动画效果是否被暂停 */
     private volatile boolean mPaused = false;
 
-    public GifView(Context context) {
+    public GifMovieView(Context context) {
         super(context);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            this.setLayerType(View.LAYER_TYPE_SOFTWARE,null);
+        }
+    }
+
+    private boolean isFullScreen = false;
+    public GifMovieView(Context context, boolean full) {
+        super(context);
+        isFullScreen = true;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             this.setLayerType(View.LAYER_TYPE_SOFTWARE,null);
         }
@@ -54,10 +65,25 @@ public class GifView extends View implements IScaleView{
      * @param giftResId
      */
     public void setMovieResource(int giftResId) {
-        this.mGiftId = giftResId;
-        byte[] bytes = getGiftBytes();
+        byte[] bytes = getGiftBytes(getResources().openRawResource(giftResId));
         mMovie = Movie.decodeByteArray(bytes, 0, bytes.length);
+        LogUtil.log("duration= "+ mMovie.duration());
         requestLayout();
+    }
+
+    /**
+     * 设置gif图资源
+     * @param path
+     */
+    public void setMovieResource(String path) {
+        try {
+            byte[] bytes = getGiftBytes(new FileInputStream(path));
+            mMovie = Movie.decodeByteArray(bytes, 0, bytes.length);
+            LogUtil.log("duration= "+ mMovie.duration());
+            requestLayout();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -109,6 +135,7 @@ public class GifView extends View implements IScaleView{
         return this.mPaused;
     }
 
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         if (mMovie != null) {
@@ -116,7 +143,9 @@ public class GifView extends View implements IScaleView{
             int movieHeight = mMovie.height();
 
             int maximumWidth = MeasureSpec.getSize(widthMeasureSpec);
-            maximumWidth = movieWidth;
+            if (!isFullScreen){
+                maximumWidth = movieWidth;
+            }
             float scaleW = (float) movieWidth / (float) maximumWidth;
             mScale = 1f / scaleW;
             mMeasuredMovieWidth = maximumWidth;
@@ -220,9 +249,8 @@ public class GifView extends View implements IScaleView{
      * 将gif图片转换成byte[]
      * @return byte[]
      */
-    private byte[] getGiftBytes() {
+    private byte[] getGiftBytes(InputStream is) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        InputStream is = getResources().openRawResource(mGiftId);
         byte[] b = new byte[1024];
         int len;
         try {
@@ -246,12 +274,18 @@ public class GifView extends View implements IScaleView{
 
 
     @Override
-    public int getShowWidth() {
+    public int getShowWidth(int width) {
+        if (isFullScreen){
+            return width;
+        }
         return mMovie.width();
     }
 
     @Override
-    public int getShowHeight() {
+    public int getShowHeight(int height) {
+        if (isFullScreen){
+            return height;
+        }
         return mMovie.height();
     }
 }

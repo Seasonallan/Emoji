@@ -1,4 +1,4 @@
-package com.season.emoji.ui.view;
+package com.season.emoji.ui.view.scale;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -11,15 +11,13 @@ import android.graphics.RectF;
 import android.graphics.Region;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
 
+import com.season.emoji.ui.view.ContainerView;
 import com.season.emoji.util.LogUtil;
-
-import java.util.Random;
 
 /**
  * Disc:
@@ -100,8 +98,9 @@ public class ScaleView extends RelativeLayout {
             if (getChildCount() > 0){
                 View child = getChildAt(0);
                 if (child instanceof IScaleView){
-                    width = width - ((IScaleView) child).getShowWidth()/2;
-                    height = height - ((IScaleView) child).getShowHeight()/2;
+                    width = width - ((IScaleView) child).getShowWidth(width * 2)/2;
+                    height = height - ((IScaleView) child).getShowHeight(height * 2)/2;
+
                 }else{
                     width = width - child.getMeasuredWidth()/2;
                     height = height - child.getMeasuredHeight()/2;

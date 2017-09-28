@@ -1,4 +1,4 @@
-package com.season.emoji.ui.view;
+package com.season.emoji.ui.view.scale;
 
 import android.content.Context;
 import android.content.res.Resources;

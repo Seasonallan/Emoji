@@ -1,4 +1,4 @@
-package com.season.emoji.util;
+package com.season.emoji.ui.view.camera;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -8,8 +8,10 @@ import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.ShutterCallback;
 import android.hardware.Camera.Size;
-import android.util.Log;
 import android.view.SurfaceHolder;
+
+import com.season.emoji.util.LogUtil;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -125,6 +127,7 @@ public class CameraUtil {
         }
       });
       for (Size size : supportedPreviewSizes) {
+        LogUtil.log(size.width +","+ size.height);
         if (size.width >= width && size.height >= height) {
           finalSize = size;
           break;

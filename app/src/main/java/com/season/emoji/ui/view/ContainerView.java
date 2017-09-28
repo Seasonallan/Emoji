@@ -7,12 +7,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
-import com.season.emoji.util.LogUtil;
+import com.season.emoji.ui.view.scale.ScaleView;
 
-import java.io.LineNumberInputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Disc:
@@ -21,7 +19,7 @@ import java.util.Random;
  */
 public class ContainerView extends RelativeLayout {
 
-    interface  IType{
+    public static interface  IType{
         int ADD = 1;
         int REMOVE = 2;
         int OP = 3;

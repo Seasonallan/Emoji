@@ -6,17 +6,25 @@
     android:layout_height="match_parent"
     tools:context=".ui.CameraActivity">
 
-    <com.season.emoji.ui.view.PushMediaCardView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
-
-    <Button
+    <com.season.emoji.ui.view.camera.CameraSurfaceView
         android:id="@+id/camera"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_above="@+id/bottom"
+        android:layout_height="match_parent"/>
+
+    <RelativeLayout
+        android:id="@+id/bottom"
+        android:layout_width="match_parent"
         android:layout_alignParentBottom="true"
-        android:text="完成"
-        android:onClick="拍照"
-        android:layout_centerHorizontal="true"/>
+        android:background="@android:color/black"
+        android:layout_height="200dp">
+
+        <com.season.emoji.ui.view.camera.CameraProgressBar
+            android:id="@+id/progress"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_centerInParent="true"/>
+
+    </RelativeLayout>
 
 </RelativeLayout>
