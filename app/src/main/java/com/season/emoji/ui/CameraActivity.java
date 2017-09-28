@@ -61,7 +61,7 @@ public class CameraActivity extends AppCompatActivity {
                             }
                         });
                     }
-                }, 0, 10);
+                }, 10, 10);
                 mCameraSurfaceView.start(new GifMaker.OnGifMakerListener() {
                     @Override
                     public void onMakeGifSucceed(String outPath) {

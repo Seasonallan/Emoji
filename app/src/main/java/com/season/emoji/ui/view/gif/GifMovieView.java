@@ -67,7 +67,7 @@ public class GifMovieView extends View implements IScaleView {
     public void setMovieResource(int giftResId) {
         byte[] bytes = getGiftBytes(getResources().openRawResource(giftResId));
         mMovie = Movie.decodeByteArray(bytes, 0, bytes.length);
-        LogUtil.log("duration= "+ mMovie.duration());
+        LogUtil.log("duration= " + mMovie.duration());
         requestLayout();
     }
 
@@ -171,7 +171,6 @@ public class GifMovieView extends View implements IScaleView {
             if (!mPaused) {
                 updateAnimationTime();
                 drawMovieFrame(canvas);
-                invalidateView();
             } else {
                 drawMovieFrame(canvas);
             }
@@ -287,5 +286,15 @@ public class GifMovieView extends View implements IScaleView {
             return height;
         }
         return mMovie.height();
+    }
+
+    @Override
+    public int getDuration() {
+        return mMovie.duration();
+    }
+
+    @Override
+    public void startRecord() {
+        mMovieStart = android.os.SystemClock.uptimeMillis();
     }
 }

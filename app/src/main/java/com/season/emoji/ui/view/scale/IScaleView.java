@@ -8,4 +8,6 @@ package com.season.emoji.ui.view.scale;
 public interface IScaleView {
     int getShowWidth(int width);
     int getShowHeight(int height);
+    int getDuration();
+    void startRecord();
 }

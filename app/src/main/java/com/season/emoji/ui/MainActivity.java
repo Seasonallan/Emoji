@@ -12,6 +12,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.march.gifmaker.GifMaker;
+import com.season.emoji.ui.view.TextViewEx;
 import com.season.emoji.ui.view.gif.frame.GifFrameView;
 import com.season.emoji.R;
 import com.season.emoji.ui.view.ContainerView;
@@ -22,6 +24,8 @@ import com.season.emoji.ui.view.scale.ScaleView;
 import com.season.emoji.util.LogUtil;
 
 import java.io.File;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,10 +39,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mContainerView = (ContainerView) findViewById(R.id.container);
-//        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mContainerView.getLayoutParams();
-//        params.width = getResources().getDisplayMetrics().widthPixels;
-//        params.height = params.width;
-//        mContainerView.requestLayout();
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mContainerView.getLayoutParams();
+        params.width = getResources().getDisplayMetrics().widthPixels;
+        params.height = params.width;
+        mContainerView.requestLayout();
 
         PermissionsManager.getInstance().requestAllManifestPermissionsIfNecessary(this, new PermissionsResultAction() {
             @Override
@@ -80,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void addText(String text){
         ScaleView scaleView = new ScaleView(this);
-        TextView textView = new TextView(this);
+        TextViewEx textView = new TextViewEx(this);
         textView.setPadding(16, 16, 16, 16);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
         textView.setText(text);
@@ -103,10 +107,8 @@ public class MainActivity extends AppCompatActivity {
                 ScaleView scaleView = new ScaleView(this);
 
                 GifFrameView gifView = new GifFrameView(this);
-                gifView.setGifImage(path);
-                gifView.setLoopAnimation();
-                gifView.setScaleType(ImageView.ScaleType.FIT_XY);
-                //  GifView gifView = new GifView(this, true);
+                gifView.setMovieResource(path);
+              //  GifMovieView gifView = new GifMovieView(this, true);
               //  gifView.setMovieResource(path);
                 scaleView.addView(gifView, new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
@@ -144,4 +146,23 @@ public class MainActivity extends AppCompatActivity {
             LogUtil.toast("已经是最后一个操作");
         }
     }
+
+    private long recLen = 300;
+    private Timer timer = new Timer();
+    public void 合成(View view) {
+        LogUtil.toast("合成");
+        recLen = System.currentTimeMillis();
+        mContainerView.start(new GifMaker.OnGifMakerListener() {
+            @Override
+            public void onMakeGifSucceed(String outPath) {
+                timer.cancel();
+                mContainerView.stop();
+                LogUtil.toast("cost time = " + (System.currentTimeMillis() - recLen) +" ms");
+                LogUtil.log("cost time = " + (System.currentTimeMillis() - recLen) +" ms");
+                startActivity(new Intent(MainActivity.this, GifShowActivity.class).putExtra("path", outPath));
+            }
+        });
+    }
+
+
 }

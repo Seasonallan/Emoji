@@ -1,16 +1,28 @@
 package com.season.emoji.ui.view;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
+import com.march.gifmaker.GifMaker;
+import com.season.emoji.ui.view.scale.IScaleView;
 import com.season.emoji.ui.view.scale.ScaleView;
+import com.season.emoji.util.LogUtil;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.Executors;
 
 /**
  * Disc:
@@ -19,7 +31,42 @@ import java.util.List;
  */
 public class ContainerView extends RelativeLayout {
 
-    public static interface  IType{
+    private TimeCount mTimeCount;
+    private boolean isStart = false;
+    public void start(GifMaker.OnGifMakerListener listener) {
+        maxDuration = 0;
+        calMaxDuration(this);
+        String absolutePath = new File(Environment.getExternalStorageDirectory() + "/3/"
+                , System.currentTimeMillis() + ".gif").getAbsolutePath();
+        mGifMaker = new GifMaker(maxDuration, 120,  Executors.newCachedThreadPool())
+                .setOutputPath(absolutePath);
+        mGifMaker.setGifMakerListener(listener);
+        isStart = true;
+    }
+
+    private int maxDuration = 0;
+    private void calMaxDuration(ViewGroup parent){
+        for (int i = 0; i< parent.getChildCount(); i++){
+            View view = parent.getChildAt(i);
+            if (view instanceof ViewGroup){
+                calMaxDuration((ViewGroup) view);
+            }else{
+                if (view instanceof IScaleView){
+                    ((IScaleView) view).startRecord();
+                    int duration = ((IScaleView) view).getDuration();
+                    LogUtil.log("duration = "+ duration);
+                    maxDuration = Math.max(maxDuration , duration);
+                    LogUtil.log("MsxDuration = "+ maxDuration);
+                }
+            }
+        }
+    }
+
+    public void stop(){
+        isStart = false;
+    }
+
+    public interface  IType{
         int ADD = 1;
         int REMOVE = 2;
         int OP = 3;
@@ -38,14 +85,71 @@ public class ContainerView extends RelativeLayout {
 
     public ContainerView(Context context) {
         super(context);
+        init();
     }
 
     public ContainerView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        init();
     }
 
     public ContainerView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        init();
+    }
+
+    boolean running = true;
+    @Override
+    public void dispatchWindowVisibilityChanged(int visibility) {
+        if (visibility == GONE || visibility == INVISIBLE) {
+            running = false;
+            LogUtil.log("dispatchWindowVisibilityChanged gone");
+        } else if (visibility == VISIBLE) {
+            LogUtil.log("dispatchWindowVisibilityChanged VISIBLE");
+            running = true;
+        }
+        super.dispatchWindowVisibilityChanged(visibility);
+    }
+
+
+    Handler mHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            mTimeCount.reset();
+            if (running){
+                refreshView(ContainerView.this);
+            }
+            if (isStart){
+                mTimeCount.addCost(1);
+                setDrawingCacheEnabled(true);
+                Bitmap tBitmap = getDrawingCache();
+                tBitmap = getBitmap(tBitmap, 270, 270);
+                setDrawingCacheEnabled(false);
+                mGifMaker.addBitmap(tBitmap);
+            }else{
+                mTimeCount.addCost(2);
+            }
+           // mHandler.sendEmptyMessageDelayed(0, 120 - mTimeCount.getTimeCost());
+            mHandler.sendEmptyMessageDelayed(0, 120);
+        }
+    };
+
+    private void refreshView(ViewGroup parent){
+        for (int i = 0; i< parent.getChildCount(); i++){
+            View view = parent.getChildAt(i);
+            if (view instanceof ViewGroup){
+                refreshView((ViewGroup) view);
+            }else{
+                view.invalidate();
+            }
+        }
+    }
+
+    GifMaker mGifMaker;
+    private void init(){
+        mTimeCount = new TimeCount();
+        mHandler.sendEmptyMessageDelayed(0, 10);
     }
 
     @Override
@@ -133,4 +237,18 @@ public class ContainerView extends RelativeLayout {
         }
     }
 
+    /**
+     */
+    public static Bitmap getBitmap(Bitmap bitmap, int width, int height)
+    {
+        int w = bitmap.getWidth();
+        int h = bitmap.getHeight();
+        Matrix matrix = new Matrix();
+        float scale = (float) width / w;
+        float scale2 = (float) height / h;
+        scale = scale < scale2 ? scale : scale2;
+        matrix.postScale(scale, scale);
+        Bitmap bmp = Bitmap.createBitmap(bitmap, 0, 0, w, h, matrix, true);
+        return bmp;
+    }
 }

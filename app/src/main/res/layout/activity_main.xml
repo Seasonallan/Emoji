@@ -6,69 +6,103 @@
     android:layout_height="match_parent"
     tools:context=".ui.MainActivity">
 
+    <RelativeLayout
+        android:id="@+id/top"
+        android:layout_width="match_parent"
+        android:background="@color/colorPrimary"
+        android:layout_height="68dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="表情科技"
+            android:textSize="24dp"
+            android:textColor="@android:color/white"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="合成"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:onClick="合成"
+            android:layout_margin="8dp"/>
+
+    </RelativeLayout>
+
     <com.season.emoji.ui.view.ContainerView
         android:id="@+id/container"
         android:layout_width="match_parent"
-        android:layout_above="@+id/operate"
-        android:layout_height="match_parent">
+        android:layout_below="@+id/top"
+        android:layout_height="wrap_content">
 
     </com.season.emoji.ui.view.ContainerView>
 
-    <Button
-        android:id="@+id/camera"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:text="拍照"
-        android:onClick="拍照"
-        android:layout_centerHorizontal="true"/>
-
-    <LinearLayout
-        android:id="@+id/addview"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/camera"
-        android:orientation="horizontal">
+        android:layout_height="match_parent"
+        android:background="@color/colorPrimary"
+        android:layout_below="@+id/container">
 
         <Button
-            android:id="@+id/gif"
+            android:id="@+id/camera"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="添加GIF"
-            android:onClick="添加GIF"
+            android:layout_alignParentBottom="true"
+            android:text="拍照"
+            android:onClick="拍照"
             android:layout_centerHorizontal="true"/>
-        <Button
-            android:id="@+id/text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="添加文字"
-            android:onClick="添加文字"
-            android:layout_centerHorizontal="true"/>
-    </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/operate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/addview"
-        android:orientation="horizontal">
+        <LinearLayout
+            android:id="@+id/addview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/camera"
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/pre"
+            <Button
+                android:id="@+id/gif"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="添加GIF"
+                android:onClick="添加GIF"
+                android:layout_centerHorizontal="true"/>
+            <Button
+                android:id="@+id/text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="添加文字"
+                android:onClick="添加文字"
+                android:layout_centerHorizontal="true"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/operate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="撤销操作"
-            android:onClick="撤销操作" />
-        <Button
-            android:id="@+id/pro"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="重复操作"
-            android:onClick="重复操作" />
-    </LinearLayout>
+            android:layout_above="@+id/addview"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/pre"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="撤销操作"
+                android:onClick="撤销操作" />
+            <Button
+                android:id="@+id/pro"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="重复操作"
+                android:onClick="重复操作" />
+        </LinearLayout>
+
+    </RelativeLayout>
+
 
 </RelativeLayout>

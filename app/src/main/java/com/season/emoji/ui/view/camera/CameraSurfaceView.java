@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 import com.march.gifmaker.GifMaker;
+import com.season.emoji.ui.view.TimeCount;
 import com.season.emoji.util.LogUtil;
 
 import java.io.File;
@@ -33,7 +34,7 @@ public class CameraSurfaceView extends RelativeLayout implements TextureView.Sur
     public boolean isStart = false;
     public int currentCameraID;
     boolean isRelease;
-
+    TimeCount timeCount;
 
     public CameraSurfaceView(Context context) {
         super(context);
@@ -46,9 +47,10 @@ public class CameraSurfaceView extends RelativeLayout implements TextureView.Sur
     }
 
     private void initView() {
+        timeCount = new TimeCount();
         String absolutePath = new File(Environment.getExternalStorageDirectory() + "/1/"
                 , System.currentTimeMillis() + ".gif").getAbsolutePath();
-        mGifMaker = new GifMaker(125,  Executors.newCachedThreadPool())
+        mGifMaker = new GifMaker(3000, 120,  Executors.newCachedThreadPool())
                 .setOutputPath(absolutePath);
 
         textureView = new TextureView(getContext());
@@ -117,14 +119,13 @@ public class CameraSurfaceView extends RelativeLayout implements TextureView.Sur
     }
 
     GifMaker mGifMaker;
-    int count = 3;
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
         if (isStart){
-            if (count%3 == 0){
+            if (timeCount.getTimeCost() >= 120){
+                timeCount.reset();
                 mGifMaker.addBitmap(textureView.getBitmap(270, 270));
             }
-            count ++;
         }
     }
 

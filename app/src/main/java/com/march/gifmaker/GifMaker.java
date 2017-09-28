@@ -51,16 +51,18 @@ public class GifMaker {
         void onMakeGifSucceed(String outPath);
     }
 
-    public GifMaker(int delayTime) {
-        this(delayTime, Executors.newCachedThreadPool());
+    public GifMaker(int duration, int delayTime) {
+        this(duration, delayTime, Executors.newCachedThreadPool());
     }
 
-    public GifMaker(int delayTime, ExecutorService executor) {
+    public GifMaker(int duration, int delayTime, ExecutorService executor) {
 
         mFinalOutputStream = new ByteArrayOutputStream();
         mEncodeOrders = new ArrayList<>();
         mExecutor = executor;
         mDelayTime = delayTime;
+        this.mTotalWorkSize = duration/mDelayTime;
+        this.mCurrentWorkSize = mTotalWorkSize;
 
         mHandler = new Handler(Looper.getMainLooper()) {
             @Override
@@ -76,8 +78,6 @@ public class GifMaker {
     public GifMaker setOutputPath(String outputPath){
         this.mStartWorkTimeStamp = System.currentTimeMillis();
         this.mOutputPath = outputPath;
-        this.mTotalWorkSize = 3 * 1000/mDelayTime;
-        this.mCurrentWorkSize = mTotalWorkSize;
         return this;
     }
 
@@ -154,8 +154,8 @@ public class GifMaker {
         if (mCurrentWorkSize == 0 || (isFinish && runningCount == 0)) {
             //排序 默认从小到大
             Collections.sort(mEncodeOrders);
-            for (LZWEncoderOrderHolder myLZWEncoder : mEncodeOrders) {
-                mFinalOutputStream.write(myLZWEncoder.getByteArrayOutputStream().toByteArray());
+            for (int i = 0; i< mEncodeOrders.size(); i++){
+                mFinalOutputStream.write(mEncodeOrders.get(i).getByteArrayOutputStream().toByteArray());
             }
             // mFinalOutputStream.write(0x3b); // gif traile
             byte[] data = mFinalOutputStream.toByteArray();

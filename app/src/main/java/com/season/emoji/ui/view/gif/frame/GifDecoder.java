@@ -1,18 +1,16 @@
 package com.season.emoji.ui.view.gif.frame;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
-
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.util.Log;
+
+import com.season.emoji.util.LogUtil;
+
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
 
 /**
  * @hide
@@ -21,26 +19,14 @@ import android.util.Log;
  */
 public class GifDecoder extends Thread {
 
-	/** 状态：正在解码中 */
-	public static final int STATUS_PARSING = 0;
-	/** 状态：图片格式错误 */
-	public static final int STATUS_FORMAT_ERROR = 1;
-	/** 状态：打开失败 */
-	public static final int STATUS_OPEN_ERROR = 2;
-	/** 状态：解码成功 */
-	public static final int STATUS_FINISH = -1;
-
 	public boolean isDestroy = false;
 
 	private InputStream in;
-	private InputStream backUpIn;
-	private int status;
 
 	public int width; // full image width
 	public int height; // full image height
 	private boolean gctFlag; // global color table used
 	private int gctSize; // size of global color table
-	private int loopCount = 1; // iterations; 0 = repeat forever
 
 	private int[] gct; // global color table
 	private int[] lct; // local color table
@@ -81,52 +67,14 @@ public class GifDecoder extends Thread {
 	private byte[] pixels;
 
 	private int frameCount;
-
-	private static final int MAX_QUEUE = 15;
-	private Queue<GifFrame> frameQueue = new ArrayBlockingQueue<GifFrame>(MAX_QUEUE);
-	private final ReentrantLock lock = new ReentrantLock();
-	private final Condition rCondition = lock.newCondition();
-	private final Condition wCondition = lock.newCondition();
-	private int icacheParse = 0; // 缓存解码成功的帧数
-	private boolean loopParse = false; // 是否已经进入了循环解码
-	private ArrayList<GifFrame> frameCache = new ArrayList<GifFrame>(frameCount);; // 当帧数小于MAX_QUEUE时，所有的帧全部缓存
-	private int iCurrentFrame = 0;
-	private boolean loopCache = false;
-
-	private GifAction action = null;
-
+	private ArrayList<GifFrame> frameCache = new ArrayList<>();; // 当帧数小于MAX_QUEUE时，所有的帧全部缓存
 	private byte[] gifData = null;
-
-	private boolean isLoop = false;
 
 	private int fileType = 0; // 1:resource,2:file,3:byte[]
 
 	private Resources res = null;
 	private int resId = 0;
 	private String strFileName = null;
-
-	public GifDecoder(GifAction action) {
-		this.action = action;
-	}
-
-	public GifDecoder(GifAction action, boolean isLoop) {
-		this.action = action;
-		this.isLoop = isLoop;
-	}
-
-	public void setLoopAnimation() {
-		isLoop = true;
-	}
-
-	public InputStream getInputStream() {
-		return backUpIn;
-	}
-
-	public void setGifImage(byte[] data) {
-		gifData = data;
-		openInputstream();
-		fileType = 3;
-	}
 
 	private void openInputstream() {
 		in = new ByteArrayInputStream(gifData);
@@ -166,6 +114,37 @@ public class GifDecoder extends Thread {
 		}
 	}
 
+	public int getDuration(){
+		return getDelay() * frameCount;
+	}
+
+	public int getDelay(){
+		return delay;
+	}
+
+	/**
+	 * 取当前帧图片
+	 *
+	 * @hide
+	 * @return 当前帧可画的图片
+	 */
+	public GifFrame getFrame(int positionTime) {
+		int position = 0;
+		if (delay != 0){
+			position = positionTime/delay;
+		}
+		LogUtil.log(""+ positionTime +"    position="+ position);
+		GifFrame gif;
+		if (position >= frameCount) {
+			position = 0;
+		}
+		if (position >= frameCache.size()){
+			return null;
+		}
+		gif = frameCache.get(position);
+		return gif;
+	}
+
 	/**
 	 * 释放资源
 	 */
@@ -178,57 +157,17 @@ public class GifDecoder extends Thread {
 			in = null;
 		}
 		gifData = null;
-		status = 0;
 		if (frameCache != null) {
 			frameCache.clear();
 			frameCache = null;
-		}
-		if (frameQueue != null) {
-			frameQueue.clear();
-			frameQueue = null;
 		}
 	}
 
 	public void destroy() {
 			isDestroy = true;
 			free();
-			action = null;
-			
 	}
 
-	/**
-	 * 当前状态
-	 * 
-	 * @return
-	 */
-	public int getStatus() {
-		return status;
-	}
-
-	/**
-	 * 取总帧 数
-	 * 
-	 * @return 图片的总帧数
-	 */
-	public int getFrameCount() {
-		if (loopParse == false && status != STATUS_FINISH)
-			return -1;
-		else
-			return frameCount;
-	}
-
-	/**
-	 * 取第一帧图片
-	 * 
-	 * @return
-	 */
-	public Bitmap getImage() {
-		return getFrameImage();
-	}
-
-	public int getLoopCount() {
-		return loopCount;
-	}
 
 	private int[] dest = null;
 
@@ -329,133 +268,9 @@ public class GifDecoder extends Thread {
 		}
 	}
 
-	/**
-	 * 取第几帧的图片
-	 * 
-	 * @param n
-	 *            帧数
-	 * @return 可画的图片，如果没有此帧或者出错，返回null
-	 */
-	public Bitmap getFrameImage() {
-		GifFrame frame = getCurrentFrame();
-		if (frame == null)
-			return null;
-		else
-			return frame.image;
-	}
-
-	/**
-	 * 取当前帧图片
-	 * 
-	 * @hide
-	 * @return 当前帧可画的图片
-	 */
-	public GifFrame getCurrentFrame() {
-		GifFrame gif = null;
-		if (loopCache && frameQueue.size() == 0) {
-			if (iCurrentFrame >= frameCount) {
-				iCurrentFrame = 0;
-				action.loopEnd();
-			}
-			gif = frameCache.get(iCurrentFrame);
-			iCurrentFrame++;
-
-		} else {
-			try {
-				lock.lockInterruptibly();
-				try {
-					while (loopCache == false && frameQueue.size() == 0) {
-						rCondition.await();
-					}
-					gif = frameQueue.poll();
-					wCondition.signal();
-					iCurrentFrame++;
-					if (loopParse && iCurrentFrame >= frameCount) {
-						action.loopEnd();
-						iCurrentFrame = 0;
-					}
-				} catch (Exception ex) {
-					rCondition.signal();
-					return null;
-				}
-			} catch (Exception ex) {
-				return null;
-			} finally {
-				lock.unlock();
-			}
-		}
-		return gif;
-	}
-
-	/**
-	 * 下一帧，进行本操作后，通过getCurrentFrame得到的是下一帧
-	 * 
-	 * @hide
-	 * @return 返回下一帧
-	 */
-	public GifFrame next() {
-		return getCurrentFrame();
-	}
-
-	private int readStream() {
+	private void readStream() {
 		init();
-		if (in != null) {
-			readHeader();
-			if (!err()) {
-				readContents();
-				if (loopParse == false) {
-					if (frameCount < 0) {
-						status = STATUS_FORMAT_ERROR;
-						if(action != null)
-						action.parseReturn(GifAction.RETURN_ERROR);
-					} else {
-//						status = STATUS_FINISH;
-//						if(action != null)
-//						action.parseReturn(GifAction.RETURN_FINISH);
-					}
-				}
-			}
-			try {
-				if (null != in)
-					in.close();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			in = null;
-			checkLoop();
-		} else {
-			status = STATUS_OPEN_ERROR;
-			if(action != null)
-			action.parseReturn(GifAction.RETURN_ERROR);
-		}
-		return status;
-	}
-
-	private void checkLoop() {
-		if (isLoop) {
-			if (loopCache) {
-				return;
-			}
-			
-			if (frameCount <= MAX_QUEUE) {
-				// frameCache = new ArrayList<GifFrame>(frameCount);
-				try {
-					lock.lockInterruptibly();
-					loopCache = true;
-					status = STATUS_FINISH;
-					if(action != null)
-					action.parseReturn(GifAction.RETURN_FINISH);
-					rCondition.signal();
-				} catch (Exception ex) {
-
-				} finally {
-					lock.unlock();
-				}
-			} else {
-				if(frameCache != null)
-				frameCache.clear();
-			}
-			switch (fileType) {
+		switch (fileType) {
 			case 1: // resource
 				openResourceFile();
 				break;
@@ -465,12 +280,20 @@ public class GifDecoder extends Thread {
 			case 3:
 				openInputstream();
 				break;
+		}
+		if (in != null) {
+			readHeader();
+			readContents();
+			try {
+				if (null != in)
+					in.close();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-			loopParse = true;
-			if(isDestroy == false)
-				readStream();
+			in = null;
 		}
 	}
+
 
 	private void decodeImageData() {
 		int NullCode = -1;
@@ -580,17 +403,10 @@ public class GifDecoder extends Thread {
 		}
 	}
 
-	private boolean err() {
-		return status != STATUS_PARSING;
-	}
-
 	private void init() {
-		status = STATUS_PARSING;
-		if (loopParse == false)
-			frameCount = 0;
+		frameCount = 0;
 		gct = null;
 		lct = null;
-		icacheParse = 0;
 	}
 
 	private int read() {
@@ -598,7 +414,6 @@ public class GifDecoder extends Thread {
 		try {
 			curByte = in.read();
 		} catch (Exception e) {
-			status = STATUS_FORMAT_ERROR;
 		}
 		return curByte;
 	}
@@ -619,9 +434,6 @@ public class GifDecoder extends Thread {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			if (n < blockSize) {
-				status = STATUS_FORMAT_ERROR;
-			}
 		}
 		return n;
 	}
@@ -639,7 +451,7 @@ public class GifDecoder extends Thread {
 			e.printStackTrace();
 		}
 		if (n < nbytes) {
-			status = STATUS_FORMAT_ERROR;
+
 		} else {
 			// tab = new int[256]; // max size to avoid bounds checks
 			int i = 0;
@@ -657,7 +469,7 @@ public class GifDecoder extends Thread {
 	private void readContents() {
 		// read GIF file content blocks
 		boolean done = false;
-		while (!(done || err()) && isDestroy == false) {
+		while (!(done) && isDestroy == false) {
 				int code = read();
 				switch (code) {
 				case 0x2C: // image separator
@@ -691,7 +503,7 @@ public class GifDecoder extends Thread {
 				case 0x00: // bad byte, but keep going and see what happens
 					break;
 				default:
-					status = STATUS_FORMAT_ERROR;
+					break;
 				}
 		}
 	}
@@ -718,11 +530,10 @@ public class GifDecoder extends Thread {
 			id += (char) read();
 		}
 		if (!id.startsWith("GIF")) {
-			status = STATUS_FORMAT_ERROR;
 			return;
 		}
 		readLSD();
-		if (gctFlag && !err()) {
+		if (gctFlag) {
 			gct = readColorTable(gctSize);
 			bgColor = gct[bgIndex];
 		}
@@ -755,60 +566,16 @@ public class GifDecoder extends Thread {
 				act[transIndex] = 0; // set transparent color if specified
 			}
 		}
-		if (act == null) {
-			status = STATUS_FORMAT_ERROR; // no color table defined
-		}
-		if (err()) {
-			return;
-		}
 		decodeImageData(); // decode pixel data
 		skip();
-		if (err()) {
-			return;
-		}
-		if (loopParse == false)
-			frameCount++;
+		frameCount++;
 		// create new image to receive frame data
 		//image = Bitmap.createBitmap(width, height, Config.ARGB_4444);
 		// createImage(width, height);
 		setPixels(); // transfer pixel data to image
 
-		try {
-
-			lock.lockInterruptibly();
-			try {
-
-				while (frameQueue != null && frameQueue.size() >= MAX_QUEUE) {
-					wCondition.await();
-				}
-				if(frameQueue != null){
-				GifFrame gif = new GifFrame(image, delay);
-				frameQueue.add(gif);
-				if (loopParse == false) {
-					frameCache.add(gif);
-				}
-				rCondition.signal();
-				if (loopParse == false && icacheParse >= 0) {
-					icacheParse++;
-					if (icacheParse >= MAX_QUEUE) {
-						// 只在第一轮解码，且缓存已经满时，才发这个事件
-						action.parseReturn(GifAction.RETURN_CACHE_FINISH);
-						icacheParse = -1;
-					} else if (icacheParse == 1) {
-						// 第一贴成功解码事件
-						action.parseReturn(GifAction.RETURN_FIRST);
-					}
-				}
-				}
-			} catch (InterruptedException ie) {
-				wCondition.signal();
-			} finally {
-				lock.unlock();
-			}
-
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
+		GifFrame gif = new GifFrame(image, delay);
+		frameCache.add(gif);
 
 		if (transparency) {
 			act[transIndex] = save;
@@ -838,9 +605,9 @@ public class GifDecoder extends Thread {
 				// loop count sub-block
 				int b1 = ((int) block[1]) & 0xff;
 				int b2 = ((int) block[2]) & 0xff;
-				loopCount = (b2 << 8) | b1;
+				//loopCount = (b2 << 8) | b1;
 			}
-		} while ((blockSize > 0) && !err());
+		} while (blockSize > 0);
 	}
 
 	private int readShort() {
@@ -862,7 +629,7 @@ public class GifDecoder extends Thread {
 		lastBgColor = bgColor;
 		dispose = 0;
 		transparency = false;
-		delay = 0;
+	//	delay = 0;
 		lct = null;
 	}
 
@@ -872,6 +639,6 @@ public class GifDecoder extends Thread {
 	private void skip() {
 		do {
 			readBlock();
-		} while ((blockSize > 0) && !err());
+		} while (blockSize > 0);
 	}
 }
