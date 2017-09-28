@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/season/emoji/permission/Permissions.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/season/emoji/permission/PermissionsManager.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/season/emoji/permission/PermissionsResultAction.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/season/emoji/ui/view/camera/CameraUtil.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/season/emoji/util/LogUtil.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/app/src/main/res/raw/clound.gif" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/app/src/main/res/raw/test.gif" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/app/src/main/res/raw/timg.gif" charset="GBK" />
     <file url="PROJECT" charset="UTF-8" />
   </component>
 </project>
