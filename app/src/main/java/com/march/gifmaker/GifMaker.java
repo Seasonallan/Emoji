@@ -36,7 +36,7 @@ public class GifMaker {
 
     private ByteArrayOutputStream       mFinalOutputStream; // 最终合并输出流
     private List<LZWEncoderOrderHolder> mEncodeOrders; // 存放线程处理结果，待全部线程执行完使用
-    private String                      mOutputPath;// GIF 保存路径
+    public String                      mOutputPath;// GIF 保存路径
     private Handler                     mHandler; // 回调回主线程使用
     private ExecutorService             mExecutor;  // 线程池
 
@@ -55,6 +55,7 @@ public class GifMaker {
         this(duration, delayTime, Executors.newCachedThreadPool());
     }
 
+    public boolean isGifMaded = false;
     public GifMaker(int duration, int delayTime, ExecutorService executor) {
 
         mFinalOutputStream = new ByteArrayOutputStream();
@@ -67,6 +68,7 @@ public class GifMaker {
         mHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(final Message msg) {
+                isGifMaded = true;
                 if (msg.what == 100 && mOnGifMakerListener != null) {
                     mOnGifMakerListener.onMakeGifSucceed(mOutputPath);
                 }
@@ -85,6 +87,11 @@ public class GifMaker {
         this.mOnGifMakerListener = listener;
     }
 
+    public void reset(){
+        isGifMaded =false;
+        mExecutor.shutdownNow();
+    }
+
     public void finish(){
         isFinish = true;
     }
@@ -92,6 +99,10 @@ public class GifMaker {
     private boolean isFinish = false;
     private int id = 0;
     private int runningCount = 0;
+
+    public boolean isBitmapFull(){
+        return id > mTotalWorkSize;
+    }
     /***
      * 添加一个图片
      */

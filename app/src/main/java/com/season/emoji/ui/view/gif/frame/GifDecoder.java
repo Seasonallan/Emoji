@@ -11,6 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author liao
@@ -66,7 +67,7 @@ public class GifDecoder extends Thread {
 	private byte[] pixels;
 
 	private int frameCount;
-	private ArrayList<GifFrame> frameCache = new ArrayList<>(); // 当帧数小于MAX_QUEUE时，所有的帧全部缓存
+	private List<GifFrame> frameCache = new ArrayList<>(); // 当帧数小于MAX_QUEUE时，所有的帧全部缓存
 	private byte[] gifData = null;
 
 	private int fileType = 0; // 1:resource,2:file,3:byte[]
@@ -110,6 +111,14 @@ public class GifDecoder extends Thread {
 		} catch (Exception ex) {
 			Log.e("GifView decode run", ex.toString());
 			ex.printStackTrace();
+		}
+	}
+
+	public void setFrameList(List<GifFrame> frameList){
+		frameCache = frameList;
+		frameCount = frameList.size();
+		if (frameList.size() > 0){
+			delay = frameList.get(0).delay;
 		}
 	}
 

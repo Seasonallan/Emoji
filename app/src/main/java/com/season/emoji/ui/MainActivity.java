@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import com.march.gifmaker.GifMaker;
 import com.season.emoji.ui.view.TextViewEx;
+import com.season.emoji.ui.view.gif.frame.GifFrame;
 import com.season.emoji.ui.view.gif.frame.GifFrameView;
 import com.season.emoji.R;
 import com.season.emoji.ui.view.ContainerView;
@@ -22,6 +23,9 @@ import com.season.emoji.ui.view.scale.ScaleView;
 import com.season.emoji.util.LogUtil;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Timer;
 
 public class MainActivity extends AppCompatActivity {
@@ -95,24 +99,42 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(new Intent(this, CameraActivity.class), 1024);
     }
 
+    public static List<GifFrame> sFrameList;
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == 2) {
             if (requestCode == 1024) {
-                String path = data.getStringExtra("outPath");
-                ScaleView scaleView = new ScaleView(this);
-                scaleView.setBackground();
-                GifFrameView gifView = new GifFrameView(this);
-                gifView.setMovieResource(path);
-              //  GifMovieView gifView = new GifMovieView(this, true);
-              //  gifView.setMovieResource(path);
-                scaleView.addView(gifView, new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                LogUtil.log(data);
+                if (data.hasExtra("outPath")){
+                    String path = data.getStringExtra("outPath");
+                    ScaleView scaleView = new ScaleView(this);
+                    scaleView.setBackground();
+                    GifFrameView gifView = new GifFrameView(this);
+                    gifView.setMovieResource(path);
+                    //  GifMovieView gifView = new GifMovieView(this, true);
+                    //  gifView.setMovieResource(path);
+                    scaleView.addView(gifView, new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-                if (mContainerView.hasCameraView(mContainerView)){
-                    mContainerView.reset();
+                    if (mContainerView.hasCameraView(mContainerView)){
+                        mContainerView.reset();
+                    }
+                    mContainerView.addView(scaleView, 0);
+                }else if (data.hasExtra("list")){
+                    LogUtil.log("frameSize= "+ sFrameList.size());
+                    ScaleView scaleView = new ScaleView(this);
+                    scaleView.setBackground();
+                    GifFrameView gifView = new GifFrameView(this);
+                    gifView.setFrameList(sFrameList);
+                    //  GifMovieView gifView = new GifMovieView(this, true);
+                    //  gifView.setMovieResource(path);
+                    scaleView.addView(gifView, new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+                    if (mContainerView.hasCameraView(mContainerView)){
+                        mContainerView.reset();
+                    }
+                    mContainerView.addView(scaleView, 0);
                 }
-                mContainerView.addView(scaleView, 0);
 
             }
         }

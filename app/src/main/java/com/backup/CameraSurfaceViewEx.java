@@ -1,6 +1,8 @@
-package com.season.emoji.ui.view.camera;
+package com.backup;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
@@ -13,11 +15,10 @@ import android.widget.RelativeLayout;
 import com.march.gifmaker.GifMaker;
 import com.season.emoji.R;
 import com.season.emoji.ui.view.TimeCount;
-import com.season.emoji.ui.view.gif.frame.GifFrame;
+import com.season.emoji.ui.view.camera.CameraUtil;
 import com.season.emoji.util.LogUtil;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -26,7 +27,7 @@ import java.util.concurrent.Executors;
  * User: SeasonAllan(451360508@qq.com)
  * Time: 2017-09-27 20:53
  */
-public class CameraSurfaceView extends RelativeLayout implements TextureView.SurfaceTextureListener  {
+public class CameraSurfaceViewEx extends RelativeLayout implements TextureView.SurfaceTextureListener  {
 
 
     TextureView textureView;
@@ -34,20 +35,25 @@ public class CameraSurfaceView extends RelativeLayout implements TextureView.Sur
     int showHeight = 240;
     public boolean isStart = false;
     public int currentCameraID;
+    boolean isRelease;
     TimeCount timeCount;
 
-    public CameraSurfaceView(Context context) {
+    public CameraSurfaceViewEx(Context context) {
         super(context);
         initView();
     }
 
-    public CameraSurfaceView(Context context, AttributeSet attrs) {
+    public CameraSurfaceViewEx(Context context, AttributeSet attrs) {
         super(context, attrs);
         initView();
     }
 
     private void initView() {
         timeCount = new TimeCount();
+        String absolutePath = new File(Environment.getExternalStorageDirectory() + "/1/"
+                , System.currentTimeMillis() + ".gif").getAbsolutePath();
+        mGifMaker = new GifMaker(3000, 120,  Executors.newCachedThreadPool())
+                .setOutputPath(absolutePath);
 
         textureView = new TextureView(getContext());
         LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
@@ -85,6 +91,7 @@ public class CameraSurfaceView extends RelativeLayout implements TextureView.Sur
         });
     }
 
+    long time = System.currentTimeMillis();
 
     private void resize(int w, int h) {
         int finalWidth = 0; int finalHeight = 0;
@@ -113,18 +120,19 @@ public class CameraSurfaceView extends RelativeLayout implements TextureView.Sur
         return false;
     }
 
-    ArrayList<GifFrame> mFrameList;
+    GifMaker mGifMaker;
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
         if (isStart){
             if (timeCount.getTimeCost() >= 120){
                 timeCount.reset();
-                mFrameList.add(new GifFrame(textureView.getBitmap(270, 270), 120));
-                if (mFrameList.size() >= 3000/120){
-                    mOnGifMakerListener.onMakeGifSucceed(mFrameList);
-                }
+                mGifMaker.addBitmap(textureView.getBitmap(270, 270));
             }
         }
+    }
+
+    public void release() {
+        isRelease = true;
     }
 
     public void switchCamera() {
@@ -139,22 +147,14 @@ public class CameraSurfaceView extends RelativeLayout implements TextureView.Sur
                 showHeight);
     }
 
-    private OnGifMakerListener mOnGifMakerListener;
-
-    public interface OnGifMakerListener {
-        void onMakeGifSucceed(ArrayList<GifFrame> frameList);
-    }
-
-    public void start(OnGifMakerListener listener) {
-        mOnGifMakerListener = listener;
-        mFrameList = new ArrayList<>();
+    public void start(GifMaker.OnGifMakerListener listener) {
+        mGifMaker.setGifMakerListener(listener);
         isStart = true;
     }
 
     public void stop(boolean force) {
         isStart = false;
-        if (force){
-            mOnGifMakerListener.onMakeGifSucceed(mFrameList);
-        }
+        if (force)
+            mGifMaker.finish();
     }
 }

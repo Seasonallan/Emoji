@@ -131,6 +131,9 @@ public class ScaleView extends RelativeLayout {
                     Rect rect = new Rect(child.getLeft(), child.getTop(), child.getRight(), child.getBottom());
                     //canvas.drawRect(rect, paint);
                     isFocus =  isTouchPointInView(child, (int)ev.getX(), (int) ev.getY());
+                    if (isFocus){
+                        ((ContainerView)getParent()).startOp();
+                    }
                 }
             }
         }

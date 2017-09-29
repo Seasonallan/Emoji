@@ -1,17 +1,16 @@
 package com.season.emoji.ui;
 
 import android.content.Intent;
-import android.database.Observable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 
-import com.march.gifmaker.GifMaker;
 import com.season.emoji.R;
 import com.season.emoji.ui.view.camera.CameraProgressBar;
 import com.season.emoji.ui.view.camera.CameraSurfaceView;
+import com.season.emoji.ui.view.gif.frame.GifFrame;
 import com.season.emoji.util.LogUtil;
 
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -62,14 +61,14 @@ public class CameraActivity extends AppCompatActivity {
                         });
                     }
                 }, 10, 10);
-                mCameraSurfaceView.start(new GifMaker.OnGifMakerListener() {
+                mCameraSurfaceView.start(new CameraSurfaceView.OnGifMakerListener() {
                     @Override
-                    public void onMakeGifSucceed(String outPath) {
-                        LogUtil.log("onMakeGifSucceed: "+outPath);
-                        mCameraSurfaceView.stop(false);
+                    public void onMakeGifSucceed(ArrayList<GifFrame> frameList) {
 
+                        mCameraSurfaceView.stop(false);
                         Intent intent = new Intent();
-                        intent.putExtra("outPath", outPath); //将值回传回去
+                        MainActivity.sFrameList = frameList;
+                        intent.putExtra("list", "LIST"); //将值回传回去
                         setResult(2, intent);
                         finish();
                     }

@@ -1,8 +1,7 @@
-package com.season.emoji.ui.view;
+package com.backup;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.os.Environment;
 import android.os.Handler;
@@ -16,13 +15,10 @@ import com.march.gifmaker.GifMaker;
 import com.season.emoji.ui.view.gif.frame.GifFrameView;
 import com.season.emoji.ui.view.scale.IScaleView;
 import com.season.emoji.ui.view.scale.ScaleView;
-import com.season.emoji.util.LogUtil;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.Executors;
 
 /**
@@ -30,16 +26,17 @@ import java.util.concurrent.Executors;
  * User: SeasonAllan(451360508@qq.com)
  * Time: 2017-09-27 14:44
  */
-public class ContainerView extends RelativeLayout {
+public class ContainerViewEx extends RelativeLayout {
 
     private boolean autoStart = true;
 
+    private boolean isAutoStart = false;
+
     private void restart(){
-        autoStart = true;
         if (mGifMaker != null){
             mGifMaker.reset();
-            mGifMaker = null;
         }
+        isAutoStart = true;
         relyView = null;
         calMaxDuration(this);
         if (relyView == null){
@@ -50,16 +47,23 @@ public class ContainerView extends RelativeLayout {
                 .setOutputPath(absolutePath);
     }
 
+    private boolean isStart = false;
     public boolean start(GifMaker.OnGifMakerListener listener) {
-        if (mGifMaker != null){
-            if (mGifMaker.isGifMaded){
-                listener.onMakeGifSucceed(mGifMaker.mOutputPath);
-            }else{
-                mGifMaker.setGifMakerListener(listener);
-            }
+        if (mGifMaker != null && mGifMaker.isGifMaded){
+            listener.onMakeGifSucceed(mGifMaker.mOutputPath);
             return true;
         }
-        return false;
+        relyView = null;
+        calMaxDuration(this);
+        if (relyView == null){
+            return false;
+        }
+        String absolutePath = new File(Environment.getExternalStorageDirectory() + "/3/out.gif").getAbsolutePath();
+        mGifMaker = new GifMaker(relyView.getDuration(), 120,  Executors.newCachedThreadPool())
+                .setOutputPath(absolutePath);
+        mGifMaker.setGifMakerListener(listener);
+        isStart = true;
+        return true;
     }
 
     private IScaleView relyView;
@@ -85,6 +89,7 @@ public class ContainerView extends RelativeLayout {
 
     public void stop(){
         mGifMaker = null;
+        isStart = false;
     }
 
     public interface  IType{
@@ -104,17 +109,17 @@ public class ContainerView extends RelativeLayout {
         }
     }
 
-    public ContainerView(Context context) {
+    public ContainerViewEx(Context context) {
         super(context);
         init();
     }
 
-    public ContainerView(Context context, AttributeSet attrs) {
+    public ContainerViewEx(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
-    public ContainerView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public ContainerViewEx(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
     }
@@ -136,18 +141,15 @@ public class ContainerView extends RelativeLayout {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             if (running){
-                refreshView(ContainerView.this);
+                refreshView(ContainerViewEx.this);
             }
-            if (autoStart){
-                if (mGifMaker != null && !mGifMaker.isBitmapFull()){
-                    if (relyView.recordOrNot()){
-                        LogUtil.log("recording");
-                        setDrawingCacheEnabled(true);
-                        Bitmap tBitmap = getDrawingCache();
-                        tBitmap = getBitmap(tBitmap, 270, 270);
-                        setDrawingCacheEnabled(false);
-                        mGifMaker.addBitmap(tBitmap);
-                    }
+            if (isStart){
+                if (relyView.recordOrNot()){
+                    setDrawingCacheEnabled(true);
+                    Bitmap tBitmap = getDrawingCache();
+                    tBitmap = getBitmap(tBitmap, 270, 270);
+                    setDrawingCacheEnabled(false);
+                    mGifMaker.addBitmap(tBitmap);
                 }
             }
            // mHandler.sendEmptyMessageDelayed(0, 120 - mTimeCount.getTimeCost());
@@ -173,7 +175,7 @@ public class ContainerView extends RelativeLayout {
 
     @Override
     public void addView(View child, int index, ViewGroup.LayoutParams params) {
-        super.addView(child, index, new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        super.addView(child, index, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         if (child instanceof ScaleView){
             if (getWidth() <= 0){
                 ((ScaleView)child).randomPosition(0, 1);
@@ -218,10 +220,10 @@ public class ContainerView extends RelativeLayout {
     List<Operate> list = new ArrayList<>();
 
     public void startOp(){
+        isAutoStart = false;
         if (mGifMaker != null){
             mGifMaker.reset();
         }
-        autoStart = false;
     }
 
     public void addEvent(int type, ScaleView scaleView, Matrix matrix){

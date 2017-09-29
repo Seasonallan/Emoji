@@ -2,7 +2,7 @@ package com.season.emoji.ui.view.gif.frame;
 
 import android.graphics.Bitmap;
 
-public class GifFrame {
+public class GifFrame{
 	/**
 	 * 构造函数
 	 * @param im 图片

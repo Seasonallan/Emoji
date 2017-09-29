@@ -11,6 +11,9 @@ import android.view.View;
 
 import com.season.emoji.ui.view.scale.IScaleView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * GifView，一个显示gif图片的view。<br>
  * gif图片可以是字节，资源或者文件的形式，可以设置播放次数，也可以设置循环播放。在播放过程中可以进行暂停<br>
@@ -49,6 +52,10 @@ public class GifFrameView extends View implements IScaleView {
 	public void setMovieResource(int resId) {
 		gifDecoder.setGifImage(getContext().getResources(), resId);
 		gifDecoder.start();
+	}
+
+	public void setFrameList(List<GifFrame> frameList){
+		gifDecoder.setFrameList(frameList);
 	}
 
 	/**
