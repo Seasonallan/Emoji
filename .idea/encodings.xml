@@ -2,11 +2,84 @@
 <project version="4">
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/app/src/main/java/com" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/march/gifmaker/GifMaker.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/march/gifmaker/base/GifEncoder.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/march/gifmaker/base/LZWEncoder.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/march/gifmaker/base/NeuQuant.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/march/gifmaker/extend/LZWEncoderOrderHolder.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/march/gifmaker/extend/ThreadGifEncoder.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/march/gifmaker/utils/Util.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/season/emoji/permission/Permissions.java" charset="GBK" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/season/emoji/permission/PermissionsManager.java" charset="GBK" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/season/emoji/permission/PermissionsResultAction.java" charset="GBK" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/season/emoji/ui/view/camera/CameraUtil.java" charset="GBK" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/season/emoji/util/LogUtil.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/ContainerView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/DelView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/DiyBackgroundView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/DiyCoverView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/LayerImageView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/ScrollCheckView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/TextStyleView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/TuyaView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/animation/AnimationProvider.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/animation/ColorProvider.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/animation/FlushProvider.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/animation/HorseLampProvider.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/animation/RotateProvider.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/animation/ScaleCutProvider.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/animation/ScaleProvider.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/animation/ScaleWaveProvider.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/animation/TextCutProvider.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/animation/TranslateLRProvider.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/animation/TranslateShowDownProvider.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/animation/TranslateShowUpProvider.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/animation/TranslateTBProvider.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/animation/WaveOneProvider.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/animation/WaveProvider.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/crop/CropFactory.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/crop/CropOpView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/crop/CropPathFreeView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/crop/CropPathView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/crop/CropRectView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/crop/CropTool.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/crop/CropView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/gif/Webp2GifHandler.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/gif/frame/GifDecoder.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/gif/frame/GifFrame.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/gif/frame/GifFrameView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/gif/frame/GifImageType.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/gif/frame/GifReDraw.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/gif/movie/DelayDecoder.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/gif/movie/FrameDecoder.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/gif/movie/GifMovieView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/gif/webp/BitmapCache.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/gif/webp/BitmapCacheUtil.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/gif/webp/GifWebpView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/model/FontListEntity.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/model/LayerEntity.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/model/TextStyleEntity.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/model/styleModel.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/scale/IScaleView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/scale/MatrixAnimation.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/scale/OpView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/scale/ScaleDetector.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/scale/ScaleView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/util/AreaAveragingScale.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/util/Constant.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/util/FileManager.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/util/GlobalStatus.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/util/MathUtil.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/util/MipmapUtil.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/util/ScreenUtils.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/util/ToolBitmapCache.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/util/ToolPaint.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/video/Utils.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/video/VideoGLRenderer.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/video/VideoTextureView.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/video/filter/FilterEngine.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/video/filter/GrayEngine.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/view/video/filter/JackEngine.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/raw/clound.gif" charset="GBK" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/raw/test.gif" charset="GBK" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/raw/timg.gif" charset="GBK" />

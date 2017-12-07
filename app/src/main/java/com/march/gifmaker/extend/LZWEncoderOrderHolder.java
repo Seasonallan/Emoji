@@ -1,5 +1,7 @@
 package com.march.gifmaker.extend;
 
+
+
 import com.march.gifmaker.base.LZWEncoder;
 
 import java.io.ByteArrayOutputStream;
@@ -7,14 +9,13 @@ import java.io.ByteArrayOutputStream;
 /**
  * CreateAt : 7/12/17
  * Describe :
- * 持有当前编码完成的 LZWEncoder 和 该次编码顺序，后面用来拼合输出流
  *
  * @author chendong
  */
 public class LZWEncoderOrderHolder implements Comparable<LZWEncoderOrderHolder> {
 
     private int                   mOrder;
-    private LZWEncoder            mLZWEncoder;
+    private LZWEncoder mLZWEncoder;
     private ByteArrayOutputStream mByteArrayOutputStream;
 
     LZWEncoderOrderHolder(LZWEncoder lzwEncoder, int order) {

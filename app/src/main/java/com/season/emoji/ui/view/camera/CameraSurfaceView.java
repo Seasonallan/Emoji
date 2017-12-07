@@ -4,22 +4,17 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
-import android.os.Environment;
 import android.util.AttributeSet;
 import android.view.TextureView;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
-import com.march.gifmaker.GifMaker;
 import com.season.emoji.R;
 import com.season.emoji.ui.view.TimeCount;
-import com.season.emoji.ui.view.gif.frame.GifFrame;
 import com.season.emoji.util.LogUtil;
+import com.view.gif.frame.GifFrame;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Executors;
 
 /**
  * Disc:

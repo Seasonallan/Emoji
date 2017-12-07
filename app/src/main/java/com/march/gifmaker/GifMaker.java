@@ -4,7 +4,6 @@ import android.graphics.Bitmap;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 
 import com.march.gifmaker.extend.LZWEncoderOrderHolder;
 import com.march.gifmaker.extend.ThreadGifEncoder;
@@ -18,120 +17,132 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 
 /**
  * CreateAt : 7/12/17
  * Describe :
- * 多线程合成Gif每一帧，最后合并结果，加快合成速度
  *
  * @author chendong
  */
-public class GifMaker {
+public class GifMaker
+{
 
     public static final String TAG = GifMaker.class.getSimpleName();
 
-    private ByteArrayOutputStream       mFinalOutputStream; // 最终合并输出流
-    private List<LZWEncoderOrderHolder> mEncodeOrders; // 存放线程处理结果，待全部线程执行完使用
-    public String                      mOutputPath;// GIF 保存路径
-    private Handler                     mHandler; // 回调回主线程使用
-    private ExecutorService             mExecutor;  // 线程池
+    private ByteArrayOutputStream mFinalOutputStream;
+    private List<LZWEncoderOrderHolder> mEncodeOrders;
+    private LZWEncoderOrderHolder mStartEncoder, mEndEncoder;
+    public String mOutputPath;
+    private Handler mHandler;
+    private ExecutorService mExecutor;
 
-    private long mStartWorkTimeStamp; // 开始时间
-    private int  mCurrentWorkSize; // 当前剩余任务长度
-    private int  mTotalWorkSize; // 总任务长度
-    private int  mDelayTime; // 每帧延时
+    private int mCurrentWorkSize;
+    private int mTotalWorkSize;
+    private int mDelayTime;
 
-    private OnGifMakerListener mOnGifMakerListener;
+    public OnGifMakerListener mOnGifMakerListener;
 
-    public interface OnGifMakerListener {
+    public interface OnGifMakerListener
+    {
+        void onMakeProgress(int index, int count);
         void onMakeGifSucceed(String outPath);
-    }
-
-    public GifMaker(int duration, int delayTime) {
-        this(duration, delayTime, Executors.newCachedThreadPool());
+        void onMakeGifFail();
     }
 
     public boolean isGifMaded = false;
-    public GifMaker(int duration, int delayTime, ExecutorService executor) {
-
+    public boolean isLowerDivice = false;
+    public GifMaker(int count, int delayTime, ExecutorService executor) {
+        isLowerDivice = false;
         mFinalOutputStream = new ByteArrayOutputStream();
         mEncodeOrders = new ArrayList<>();
         mExecutor = executor;
         mDelayTime = delayTime;
-        this.mTotalWorkSize = duration/mDelayTime;
+        this.mTotalWorkSize = count;
         this.mCurrentWorkSize = mTotalWorkSize;
 
-        mHandler = new Handler(Looper.getMainLooper()) {
+        mHandler = new Handler(Looper.getMainLooper())
+        {
             @Override
             public void handleMessage(final Message msg) {
                 isGifMaded = true;
-                if (msg.what == 100 && mOnGifMakerListener != null) {
+                if (msg.what == 200 && mOnGifMakerListener != null) {
                     mOnGifMakerListener.onMakeGifSucceed(mOutputPath);
+                }else if (msg.what == 404 && mOnGifMakerListener != null) {
+                    mOnGifMakerListener.onMakeGifFail();
+                    mExecutor.shutdownNow();
+                }else if (mOnGifMakerListener != null) {
+                    mOnGifMakerListener.onMakeProgress(msg.what, getTotalSize());
                 }
                 super.handleMessage(msg);
             }
         };
     }
 
-    public GifMaker setOutputPath(String outputPath){
-        this.mStartWorkTimeStamp = System.currentTimeMillis();
+    public GifMaker setOutputPath(String outputPath) {
         this.mOutputPath = outputPath;
         return this;
     }
 
-    public void setGifMakerListener(OnGifMakerListener listener){
+    public void setGifMakerListener(OnGifMakerListener listener) {
         this.mOnGifMakerListener = listener;
     }
 
-    public void reset(){
-        isGifMaded =false;
+    public void reset() {
+        isGifMaded = false;
         mExecutor.shutdownNow();
     }
 
-    public void finish(){
-        isFinish = true;
-    }
-
-    private boolean isFinish = false;
     private int id = 0;
-    private int runningCount = 0;
 
-    public boolean isBitmapFull(){
-        return id > mTotalWorkSize;
+    public boolean isBitmapFull() {
+        if (id * repeatCount >= mTotalWorkSize){
+            return true;
+        }
+        return false;
     }
+
+    public int getTotalSize(){
+        return mTotalWorkSize;
+    }
+
+    public int getFrameCountNow() {
+        return id;
+    }
+
+    public int getDelay(){
+        return mDelayTime;
+    }
+
     /***
-     * 添加一个图片
      */
     public void addBitmap(Bitmap bitmap) {
-        runningCount ++ ;
-        if (id > mTotalWorkSize){
+        if (id >= mTotalWorkSize) {
             return;
         }
         mExecutor.execute(new EncodeGifRunnable(bitmap, id++));
+        mHandler.sendEmptyMessage(id);
+    }
+
+    int repeatCount = 1;
+    public void setRepeatCount(int count){
+        this.repeatCount = count;
+        if (mCurrentWorkSize%repeatCount != 0){
+            this.mCurrentWorkSize = mCurrentWorkSize/repeatCount + 1;
+        }else{
+            this.mCurrentWorkSize = mCurrentWorkSize/repeatCount;
+        }
     }
 
     /**
-     * 编码一帧
      */
-    private class EncodeGifRunnable implements Runnable {
+    private class EncodeGifRunnable implements Runnable
+    {
 
-        int                   mOrder; // 当前顺序
-        Bitmap                mBitmap; // 当前位图
-        ThreadGifEncoder      mThreadGifEncoder; // 当前编码器
-        ByteArrayOutputStream mCurrentOutputStream; // 当前数据输出流
+        int mOrder;
+        Bitmap mBitmap;
 
         EncodeGifRunnable(Bitmap bitmap, int order) {
-            mCurrentOutputStream = new ByteArrayOutputStream();
-            mThreadGifEncoder = new ThreadGifEncoder();
-            mThreadGifEncoder.setQuality(100);
-            mThreadGifEncoder.setDelay(mDelayTime);
-            mThreadGifEncoder.start(mCurrentOutputStream, order);
-            mThreadGifEncoder.setFirstFrame(order == 0);
-            mThreadGifEncoder.setRepeat(0);
             mBitmap = bitmap;
             mOrder = order;
         }
@@ -139,36 +150,94 @@ public class GifMaker {
         @Override
         public void run() {
             try {
-                Log.e(TAG, "开始编码第" + mOrder + "张");
-                LZWEncoderOrderHolder holder = mThreadGifEncoder.addFrame(mBitmap, mOrder);
-                boolean isLast = mOrder == (mTotalWorkSize - 1);
-                if (isFinish){
-                    isLast = mOrder == id - 1;
+                if (repeatCount <= 1){
+                    ByteArrayOutputStream currentStream = new ByteArrayOutputStream();
+                    ThreadGifEncoder encoder = new ThreadGifEncoder();
+                    encoder.setQuality(isLowerDivice?10:1);
+                    encoder.setDelay(mDelayTime);
+                    encoder.start(currentStream, mOrder);
+                    encoder.setFirstFrame(mOrder == 0);
+                    encoder.setRepeat(0);
+                    LZWEncoderOrderHolder holder = encoder.addFrame(mBitmap, mOrder);
+                    encoder.finishThread(mOrder == (mTotalWorkSize - 1), holder.getLZWEncoder());
+                    holder.setByteArrayOutputStream(currentStream);
+                    mEncodeOrders.add(holder);
+                }else{
+                    if (mOrder == 0){
+                        ByteArrayOutputStream startStream = new ByteArrayOutputStream();
+                        ThreadGifEncoder encoder = new ThreadGifEncoder();
+                        encoder.setQuality(isLowerDivice?10:1);
+                        encoder.setDelay(mDelayTime);
+                        encoder.start(startStream, mOrder);
+                        encoder.setFirstFrame(mOrder == 0);
+                        encoder.setRepeat(0);
+                        mStartEncoder = encoder.addFrame(mBitmap, mOrder);
+                        encoder.finishThread(false, mStartEncoder.getLZWEncoder());
+                        mStartEncoder.setByteArrayOutputStream(startStream);
+                    }else if ((mOrder + 1) * repeatCount >= mTotalWorkSize){
+                        ByteArrayOutputStream endStream = new ByteArrayOutputStream();
+                        ThreadGifEncoder encoder = new ThreadGifEncoder();
+                        encoder.setQuality(isLowerDivice?10:1);
+                        encoder.setDelay(mDelayTime);
+                        encoder.start(endStream, mOrder);
+                        encoder.setFirstFrame(mOrder == 0);
+                        encoder.setRepeat(0);
+                        mEndEncoder = encoder.addFrame(mBitmap, mOrder);
+                        encoder.finishThread(true, mEndEncoder.getLZWEncoder());
+                        mEndEncoder.setByteArrayOutputStream(endStream);
+                    }
+                    ByteArrayOutputStream currentStream = new ByteArrayOutputStream();
+                    ThreadGifEncoder encoder = new ThreadGifEncoder();
+                    encoder.setQuality(isLowerDivice?10:1);
+                    encoder.setDelay(mDelayTime);
+                    encoder.start(currentStream, 1);
+                    encoder.setFirstFrame(false);
+                    encoder.setRepeat(0);
+
+                    LZWEncoderOrderHolder holder = encoder.addFrame(mBitmap, mOrder);
+                    encoder.finishThread(false, holder.getLZWEncoder());
+                    holder.setByteArrayOutputStream(currentStream);
+
+                    mEncodeOrders.add(holder);
                 }
-                mThreadGifEncoder.finishThread(isLast, holder.getLZWEncoder());
-                holder.setByteArrayOutputStream(mCurrentOutputStream);
-                mEncodeOrders.add(holder);
-                logCostTime(mOrder, mBitmap);
                 Util.recycleBitmaps(mBitmap);
                 workDone();
             } catch (Exception e) {
                 e.printStackTrace();
+                mHandler.sendEmptyMessage(404);
             }
         }
 
     }
 
-    // 完成一帧
     private synchronized void workDone() throws IOException {
         mCurrentWorkSize--;
-        runningCount --;
-        if (mCurrentWorkSize == 0 || (isFinish && runningCount == 0)) {
-            //排序 默认从小到大
+        if (mCurrentWorkSize == 0) {
             Collections.sort(mEncodeOrders);
-            for (int i = 0; i< mEncodeOrders.size(); i++){
-                mFinalOutputStream.write(mEncodeOrders.get(i).getByteArrayOutputStream().toByteArray());
+            if (repeatCount <= 1){
+                for (int i = 0; i < mEncodeOrders.size(); i++) {
+                    mFinalOutputStream.write(mEncodeOrders.get(i).getByteArrayOutputStream().toByteArray());
+                }
+            }else{
+                for (int index = 0; index < repeatCount; index ++){
+                    if(index == 0){
+                        mFinalOutputStream.write(mStartEncoder.getByteArrayOutputStream().toByteArray());
+                        for (int i = 1; i < mEncodeOrders.size(); i++) {
+                            mFinalOutputStream.write(mEncodeOrders.get(i).getByteArrayOutputStream().toByteArray());
+                        }
+                    }else if (index == repeatCount - 1){
+                        for (int i = 0; i < mEncodeOrders.size() - 1; i++) {
+                            mFinalOutputStream.write(mEncodeOrders.get(i).getByteArrayOutputStream().toByteArray());
+                        }
+                        mFinalOutputStream.write(mEndEncoder.getByteArrayOutputStream().toByteArray());
+                    }else{
+                        for (int i = 0; i < mEncodeOrders.size(); i++) {
+                            mFinalOutputStream.write(mEncodeOrders.get(i).getByteArrayOutputStream().toByteArray());
+                        }
+                    }
+                }
             }
-            // mFinalOutputStream.write(0x3b); // gif traile
+
             byte[] data = mFinalOutputStream.toByteArray();
             File file = new File(mOutputPath);
             if (!file.getParentFile().exists()) {
@@ -178,18 +247,8 @@ public class GifMaker {
             bosToFile.write(data);
             bosToFile.flush();
             bosToFile.close();
-            logCostTime(-1, null);
-            mHandler.sendEmptyMessage(100);
+            mHandler.sendEmptyMessage(200);
         }
-    }
-
-
-    private void logCostTime(int order, Bitmap bitmap) {
-        long currentTimeMillis = System.currentTimeMillis();
-        long timeCost = currentTimeMillis - mStartWorkTimeStamp;
-        String msg = String.format(Locale.CHINA, "%d.%d s", timeCost / 1000, timeCost % 1000);
-
-        Log.i(TAG, (order == -1 ? "合成完成" : "完成第" + order + "帧") + ",耗时:" + msg + (bitmap == null ? "" : (" - bitmap [" + bitmap.getWidth() + "," + bitmap.getHeight() + "]")));
     }
 
 }

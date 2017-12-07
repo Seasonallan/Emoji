@@ -7,8 +7,8 @@ import android.support.v7.app.AppCompatActivity;
 import com.season.emoji.R;
 import com.season.emoji.ui.view.camera.CameraProgressBar;
 import com.season.emoji.ui.view.camera.CameraSurfaceView;
-import com.season.emoji.ui.view.gif.frame.GifFrame;
 import com.season.emoji.util.LogUtil;
+import com.view.gif.frame.GifFrame;
 
 import java.util.ArrayList;
 import java.util.Timer;
@@ -26,7 +26,7 @@ public class CameraActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_camera);
+        setContentView(R.layout.activity_diy_camera);
 
         mCameraSurfaceView = (CameraSurfaceView) findViewById(R.id.camera);
 

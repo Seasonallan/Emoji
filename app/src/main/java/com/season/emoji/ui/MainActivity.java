@@ -1,31 +1,29 @@
 package com.season.emoji.ui;
 
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.march.gifmaker.GifMaker;
-import com.season.emoji.ui.view.TextViewEx;
-import com.season.emoji.ui.view.gif.frame.GifFrame;
-import com.season.emoji.ui.view.gif.frame.GifFrameView;
 import com.season.emoji.R;
-import com.season.emoji.ui.view.ContainerView;
-import com.season.emoji.ui.view.gif.movie.GifMovieView;
 import com.season.emoji.permission.PermissionsManager;
 import com.season.emoji.permission.PermissionsResultAction;
-import com.season.emoji.ui.view.scale.ScaleView;
 import com.season.emoji.util.LogUtil;
+import com.view.ContainerView;
+import com.view.TextStyleView;
+import com.view.gif.frame.GifFrame;
+import com.view.gif.frame.GifFrameView;
+import com.view.gif.movie.GifMovieView;
+import com.view.scale.ScaleView;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Timer;
 
 public class MainActivity extends AppCompatActivity {
@@ -37,13 +35,19 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         LogUtil.init(this);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_diy_main);
 
         mContainerView = (ContainerView) findViewById(R.id.container);
         RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mContainerView.getLayoutParams();
         params.width = getResources().getDisplayMetrics().widthPixels;
         params.height = params.width;
         mContainerView.requestLayout();
+        View parentView = findViewById(R.id.opviewContainer);
+        mContainerView.bindBgView(parentView, new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+            }
+        });
 
         PermissionsManager.getInstance().requestAllManifestPermissionsIfNecessary(this, new PermissionsResultAction() {
             @Override
@@ -85,17 +89,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void addText(String text){
         ScaleView scaleView = new ScaleView(this);
-        TextViewEx textView = new TextViewEx(this);
-        textView.setPadding(16, 16, 16, 16);
-        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
+        TextStyleView textView = new TextStyleView(this);
         textView.setText(text);
-        scaleView.addView(textView, new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        scaleView.addView(textView);
 
         mContainerView.addView(scaleView);
 
     }
 
-    public void 拍照(View view) {
+    public void camera(View view) {
         startActivityForResult(new Intent(this, CameraActivity.class), 1024);
     }
 
@@ -116,9 +118,9 @@ public class MainActivity extends AppCompatActivity {
                     //  gifView.setMovieResource(path);
                     scaleView.addView(gifView, new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-                    if (mContainerView.hasCameraView(mContainerView)){
-                        mContainerView.reset();
-                    }
+//                    if (mContainerView.hasCameraView(mContainerView)){
+//                        mContainerView.reset();
+//                    }
                     mContainerView.addView(scaleView, 0);
                 }else if (data.hasExtra("list")){
                     LogUtil.log("frameSize= "+ sFrameList.size());
@@ -130,9 +132,9 @@ public class MainActivity extends AppCompatActivity {
                     //  gifView.setMovieResource(path);
                     scaleView.addView(gifView, new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-                    if (mContainerView.hasCameraView(mContainerView)){
-                        mContainerView.reset();
-                    }
+//                    if (mContainerView.hasCameraView(mContainerView)){
+//                        mContainerView.reset();
+//                    }
                     mContainerView.addView(scaleView, 0);
                 }
 
@@ -140,19 +142,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    int[] ids = {R.raw.clound, R.raw.test, R.raw.timg, R.raw.mirror, R.raw.umbrella};
+    int[] ids = {R.raw.test, R.raw.timg, R.raw.mirror, R.raw.umbrella};
     String[] idsStr = {"umbrella.gif", "clound.gif"};
     int i = 0;
-    public void 添加GIF(View view) {
+    public void addGif(View view) {
         addImage(ids[i++ % ids.length]);
        // addImageEx(idsStr[i++ % idsStr.length]);
     }
 
-    public void 添加文字(View view) {
+    public void addText(View view) {
         addText("表情科技Demo");
     }
 
-    public void 撤销操作(View view) {
+    public void undo(View view) {
         if (mContainerView.canPre()){
             mContainerView.pre();
         }else{
@@ -161,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void 重复操作(View view) {
+    public void redo(View view) {
         if (mContainerView.canPro()){
             mContainerView.pro();
         }else{
@@ -171,14 +173,19 @@ public class MainActivity extends AppCompatActivity {
 
     private long recLen = 300;
     private Timer timer = new Timer();
-    public void 合成(View view) {
+    public void makeGif(View view) {
         if (mContainerView.getChildCount() == 0){
             LogUtil.toast("画布上没东西");
             return;
         }
         LogUtil.toast("正在合成，请稍后");
         recLen = System.currentTimeMillis();
-        mContainerView.start(new GifMaker.OnGifMakerListener() {
+        mContainerView.start(1, new GifMaker.OnGifMakerListener() {
+            @Override
+            public void onMakeProgress(int index, int count) {
+
+            }
+
             @Override
             public void onMakeGifSucceed(String outPath) {
                 timer.cancel();
@@ -186,6 +193,11 @@ public class MainActivity extends AppCompatActivity {
                 LogUtil.toast("cost time = " + (System.currentTimeMillis() - recLen) +" ms");
                 LogUtil.log("cost time = " + (System.currentTimeMillis() - recLen) +" ms");
                 startActivity(new Intent(MainActivity.this, GifShowActivity.class).putExtra("path", outPath));
+            }
+
+            @Override
+            public void onMakeGifFail() {
+
             }
         });
     }

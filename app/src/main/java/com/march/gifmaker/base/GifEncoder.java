@@ -3,7 +3,6 @@ package com.march.gifmaker.base;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.util.Log;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
@@ -36,14 +35,11 @@ import java.io.OutputStream;
 public class GifEncoder {
     private static final String TAG = "AnimatedGifEncoder";
 
-    // The minimum % of an images pixels that must be transparent for us to set a transparent index automatically.
-    private static final double MIN_TRANSPARENT_PERCENTAGE = 4d;
-
     protected int width; // image size
 
     protected int height;
 
-    private Integer transparent = null; // transparent color if given
+    private Integer transparentColor = 0xFF09FF31; // transparent color if given
 
     private boolean hasTransparentPixels;
 
@@ -52,7 +48,7 @@ public class GifEncoder {
     protected int     delay   = 0; // frame delay (hundredths)
     protected boolean started = false; // ready to output frames
     protected OutputStream out;
-    protected Bitmap       image; // current frame
+    protected Bitmap image; // current frame
     protected byte[]       pixels; // BGR byte array from frame
     protected byte[]       indexedPixels; // converted frame indexed to palette
     protected int          colorDepth; // number of bit planes
@@ -111,7 +107,7 @@ public class GifEncoder {
      * @param color Color to be treated as transparent on display.
      */
     public void setTransparent(int color) {
-        transparent = color;
+        transparentColor = color;
     }
 
     /**
@@ -305,10 +301,8 @@ public class GifEncoder {
         colorDepth = 8;
         palSize = 7;
         // get closest match to transparent color if specified
-        if (transparent != null) {
-            transIndex = findClosest(transparent);
-        } else if (hasTransparentPixels) {
-            transIndex = findClosest(Color.TRANSPARENT);
+        if (hasTransparentPixels) {
+            transIndex = findClosest(transparentColor);
         }
     }
 
@@ -328,8 +322,8 @@ public class GifEncoder {
             int dr = r - (colorTab[i++] & 0xff);
             int dg = g - (colorTab[i++] & 0xff);
             int db = b - (colorTab[i] & 0xff);
-            int d = dr * dr + dg * dg + db * db;
             int index = i / 3;
+            int d = dr * dr + dg * dg + db * db;
             if (usedEntry[index] && (d < dmin)) {
                 dmin = d;
                 minpos = index;
@@ -361,22 +355,17 @@ public class GifEncoder {
 
         int pixelsIndex = 0;
         hasTransparentPixels = false;
-        int totalTransparentPixels = 0;
         for (final int pixel : pixelsInt) {
             if (pixel == Color.TRANSPARENT) {
-                totalTransparentPixels++;
+                hasTransparentPixels = true;
+                pixels[pixelsIndex++] = (byte) (transparentColor & 0xFF);
+                pixels[pixelsIndex++] = (byte) ((transparentColor >> 8) & 0xFF);
+                pixels[pixelsIndex++] = (byte) ((transparentColor >> 16) & 0xFF);
+            }else{
+                pixels[pixelsIndex++] = (byte) (pixel & 0xFF);
+                pixels[pixelsIndex++] = (byte) ((pixel >> 8) & 0xFF);
+                pixels[pixelsIndex++] = (byte) ((pixel >> 16) & 0xFF);
             }
-            pixels[pixelsIndex++] = (byte) (pixel & 0xFF);
-            pixels[pixelsIndex++] = (byte) ((pixel >> 8) & 0xFF);
-            pixels[pixelsIndex++] = (byte) ((pixel >> 16) & 0xFF);
-        }
-
-        double transparentPercentage = 100 * totalTransparentPixels / (double) pixelsInt.length;
-        // Assume images with greater where more than n% of the pixels are transparent actually have transparency.
-        // See issue #214.
-        hasTransparentPixels = transparentPercentage > MIN_TRANSPARENT_PERCENTAGE;
-        if (Log.isLoggable(TAG, Log.DEBUG)) {
-            Log.d(TAG, "got pixels for frame with " + transparentPercentage + "% transparent pixels");
         }
     }
 
@@ -388,7 +377,7 @@ public class GifEncoder {
         out.write(0xf9); // GCE label
         out.write(4); // data block size
         int transp, disp;
-        if (transparent == null && !hasTransparentPixels) {
+        if (!hasTransparentPixels) {
             transp = 0;
             disp = 0; // dispose = no action
         } else {

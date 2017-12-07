@@ -12,7 +12,6 @@ import java.io.OutputStream;
 /**
  * CreateAt : 7/12/17
  * Describe :
- * 扩展 GifEncoder， 为多线程处理任务
  *
  * @author chendong
  */
@@ -28,7 +27,6 @@ public class ThreadGifEncoder extends GifEncoder {
         LZWEncoder lzwEncoder = null;
         try {
             if (!sizeSet) {
-                // 使用第一张图片的大小作为gif的大小
                 setSize(im.getWidth(), im.getHeight());
             }
             image = im;
@@ -81,7 +79,7 @@ public class ThreadGifEncoder extends GifEncoder {
         boolean ok = true;
         closeStream = false;
         out = os;
-        if (num == 0) { // 第一个
+        if (num == 0) { //
             try {
                 writeString("GIF89a"); // header
             } catch (IOException e) {

@@ -4,19 +4,16 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.season.emoji.R;
-import com.season.emoji.ui.view.ContainerView;
-import com.season.emoji.ui.view.gif.frame.GifFrameView;
-import com.season.emoji.ui.view.scale.ScaleView;
-import com.season.emoji.util.LogUtil;
+import com.view.ContainerView;
+import com.view.gif.frame.GifFrameView;
+import com.view.scale.ScaleView;
 
 import java.io.File;
 
