@@ -1,9 +1,13 @@
 package com.season.emoji.ui;
 
+import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +20,9 @@ import com.season.emoji.permission.PermissionsManager;
 import com.season.emoji.permission.PermissionsResultAction;
 import com.season.emoji.util.LogUtil;
 import com.view.ContainerView;
+import com.view.LayerImageView;
 import com.view.TextStyleView;
+import com.view.animation.AnimationProvider;
 import com.view.gif.frame.GifFrame;
 import com.view.gif.frame.GifFrameView;
 import com.view.gif.movie.GifMovieView;
@@ -28,21 +34,37 @@ import java.util.Timer;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static void start(Context context){
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
+    }
+
+
     ContainerView mContainerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        LogUtil.init(this);
         setContentView(R.layout.activity_diy_main);
+
+
+        int needWidth = 1024;
+        int needHeight = 1024;
 
         mContainerView = (ContainerView) findViewById(R.id.container);
         RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mContainerView.getLayoutParams();
         params.width = getResources().getDisplayMetrics().widthPixels;
-        params.height = params.width;
+        params.height = needHeight * params.width/needWidth;
         mContainerView.requestLayout();
+
         View parentView = findViewById(R.id.opviewContainer);
+        RelativeLayout.LayoutParams params2 = (RelativeLayout.LayoutParams) parentView.getLayoutParams();
+        params2.width = getResources().getDisplayMetrics().widthPixels;
+        params2.height = needHeight * params.width/needWidth;
+        parentView.requestLayout();
+
         mContainerView.bindBgView(parentView, new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
@@ -75,6 +97,15 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void addBackgroundImage(String filePath){
+        ScaleView scaleView = new ScaleView(this);
+        LayerImageView gifView = new LayerImageView(this);
+        gifView.setImageFile(filePath);
+        scaleView.addView(gifView);
+        scaleView.setBackground();
+        mContainerView.addView(scaleView, 0);
+    }
+
     private void addImageEx(String name){
         ScaleView scaleView = new ScaleView(this);
         GifMovieView gifView = new GifMovieView(this);
@@ -91,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
         ScaleView scaleView = new ScaleView(this);
         TextStyleView textView = new TextStyleView(this);
         textView.setText(text);
+        textView.setTextAnimationType(11,1500, 100, 1);
         scaleView.addView(textView);
 
         mContainerView.addView(scaleView);
@@ -98,13 +130,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void camera(View view) {
-        startActivityForResult(new Intent(this, CameraActivity.class), 1024);
+        //startActivityForResult(new Intent(this, CameraActivity.class), 1024);
+        Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(i, RESULT_LOAD_IMAGE);
+
     }
 
+    static final int RESULT_LOAD_IMAGE = 32;
     public static List<GifFrame> sFrameList;
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK ) {
+            if (requestCode == RESULT_LOAD_IMAGE && null != data) {
+                Uri selectedImage = data.getData();
+                String[] filePathColumn = {MediaStore.Images.Media.DATA};
+
+                Cursor cursor = getContentResolver().query(selectedImage,
+                        filePathColumn, null, null, null);
+                cursor.moveToFirst();
+
+                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                final String picturePath = cursor.getString(columnIndex);
+                LogUtil.log("picturePath= "+ picturePath);
+                addBackgroundView(picturePath);
+                cursor.close();
+            }
+        }
         if (resultCode == 2) {
             if (requestCode == 1024) {
                 LogUtil.log(data);
@@ -142,7 +194,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    int[] ids = {R.raw.test, R.raw.timg, R.raw.mirror, R.raw.umbrella};
+    private void addBackgroundView(String picturePath) {
+        addBackgroundImage(picturePath);
+    }
+
+    int[] ids = {R.raw.result, R.raw.test, R.raw.timg, R.raw.mirror, R.raw.umbrella};
     String[] idsStr = {"umbrella.gif", "clound.gif"};
     int i = 0;
     public void addGif(View view) {
@@ -151,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void addText(View view) {
-        addText("表情科技Demo");
+        addText("陪你每天进步一点点");
     }
 
     public void undo(View view) {
@@ -176,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
     public void makeGif(View view) {
         if (mContainerView.getChildCount() == 0){
             LogUtil.toast("画布上没东西");
-            return;
+           // return;
         }
         LogUtil.toast("正在合成，请稍后");
         recLen = System.currentTimeMillis();
@@ -203,4 +259,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void cropGif(View view) {
+        startActivity(new Intent(this, CropActivity.class));
+    }
+
+    public void cropImage(View view) {
+    }
 }
